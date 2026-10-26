@@ -13,7 +13,7 @@ Juego de colonización por turnos para 2 a 4 jugadores, en el navegador. La pág
 La función acepta cualquiera de estos pares de variables:
 `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`, o `KV_REST_API_URL` + `KV_REST_API_TOKEN`.
 
-Si la base de datos no está conectada, el juego sigue funcionando en modo "mismo dispositivo".
+Cada jugador juega desde su propio dispositivo. Sin la base de datos conectada no se pueden crear mesas.
 
 ## Cómo funciona
 

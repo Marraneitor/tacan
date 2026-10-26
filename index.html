@@ -1701,10 +1701,8 @@ const Board = (() => {
   function homeSide() {
     const online = !!net;
     const gameRow = (g, label) => `<div class="li"><span class="code">${esc(g.code)}</span><span class="grow">${esc((g.names || []).join(', '))}</span><button class="btn small" data-act="join" data-code="${esc(g.code)}">${label}</button></div>`;
-    const names = ui.localNames;
-    const saved = store.get('localGame', null);
     return `
-      <section class="card hero"><h2>Funda poblados, comercia y llega a 10 puntos.</h2><p>Juego de colonización por turnos para 2 a 4 jugadores. El mapa de la izquierda es con el que vas a jugar: pulsa «Mezclar mapa» para cambiar de lugar los terrenos, los números y los puertos.</p></section>
+      <section class="card hero"><h2>Funda poblados, comercia y llega a 10 puntos.</h2><p>Juego de colonización por turnos para 2 a 4 jugadores, cada uno desde su propio teléfono o computadora. Crea una mesa y pasa el código a tus amigos. El mapa es con el que vas a jugar: pulsa «Mezclar mapa» para cambiar de lugar los terrenos, los números y los puertos.</p></section>
       ${online ? `
       <section class="card">
         <div class="label">Tu nombre</div>
@@ -1715,13 +1713,7 @@ const Board = (() => {
       </section>
       ${myGames.length ? `<section class="card"><div class="label">Tus partidas</div><div class="list">${myGames.map((g) => gameRow(g, 'Volver')).join('')}</div></section>` : ''}
       ${openGames.length ? `<section class="card"><div class="label">Mesas esperando jugadores</div><div class="list">${openGames.map((g) => gameRow(g, 'Entrar')).join('')}</div></section>` : ''}
-      ` : `<section class="card"><div class="label">En línea</div><p>${netChecked ? 'No hay conexión con el servidor de partidas. Aquí pueden jugar en el mismo dispositivo.' : 'Conectando…'}</p></section>`}
-      <section class="card">
-        <div class="label">Jugar en este dispositivo</div>
-        <div class="list">${names.map((n, i) => `<div class="row"><input type="text" id="ln${i}" data-ln="${i}" maxlength="18" value="${esc(n)}" placeholder="Jugador ${i + 1}">${names.length > 2 ? `<button class="btn small ghost" data-act="lnDel" data-i="${i}" aria-label="Quitar jugador">✕</button>` : ''}</div>`).join('')}</div>
-        <div class="row">${names.length < 4 ? `<button class="btn small" data-act="lnAdd">Añadir jugador</button>` : ''}<span style="flex:1"></span><button class="btn" data-act="localStart">Empezar aquí</button></div>
-        ${saved && saved.phase !== 'ended' && saved.phase !== 'lobby' ? `<button class="btn small ghost" data-act="localResume">Continuar la partida guardada</button>` : ''}
-      </section>
+      ` : `<section class="card"><div class="label">En línea</div><p>${netChecked ? 'No hay conexión con el servidor de partidas. Recarga la página en unos minutos.' : 'Conectando…'}</p></section>`}
       <section class="card"><div class="label">Reglas rápidas</div>${rulesList()}</section>`;
   }
 
