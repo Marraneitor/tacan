@@ -1,0 +1,5 @@
+{
+  "name": "hexalia",
+  "private": true,
+  "engines": { "node": ">=18" }
+}
