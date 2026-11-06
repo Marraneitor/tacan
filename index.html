@@ -1,27 +1,29 @@
 <!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0a1d29"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cpolygon points=%2216,1 29,8.5 29,23.5 16,31 3,23.5 3,8.5%22 fill=%22%23ffb25c%22/%3E%3C/svg%3E">
+<meta name="theme-color" content="#1c63a8"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cpolygon points=%2216,1 29,8.5 29,23.5 16,31 3,23.5 3,8.5%22 fill=%22%23ffb25c%22/%3E%3C/svg%3E">
 </head><body>
 <title>Hexalia</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700;800&family=Young+Serif&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700;800;900&family=Young+Serif&display=swap">
 <style>
 /* Layout: full-height table. Large island map fills the left; a fixed control panel on the right scrolls on its own. On phones the map sits on top and the panel follows. */
 :root {
-  --bg: #0a1d29;
-  --card: #12303f;
-  --card-2: #17394a;
-  --line: #2a5468;
-  --ink: #f3f6f4;
-  --ink-2: #c2d4d6;
-  --muted: #8eaab0;
-  --accent: #ffb25c;
+  --bg: #1c63a8;
+  --sea: #2273bd;
+  --card: #f7f0e0;
+  --card-2: #ece2ca;
+  --well: #efe5cf;
+  --line: #d8c9a6;
+  --ink: #2b2620;
+  --ink-2: #4d463a;
+  --muted: #7c735f;
+  --accent: #f28c28;
   --accent-ink: #2b1504;
-  --good: #7ad8a2;
-  --bad: #ff8a7a;
+  --good: #23874a;
+  --bad: #c2352a;
   --font-display: "Young Serif", Georgia, "Times New Roman", serif;
   --font-body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
-  color-scheme: dark;
+  color-scheme: light;
 }
 * { box-sizing: border-box; }
 html, body { height: 100%; }
@@ -35,7 +37,7 @@ body {
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   padding-block: 0;
-  background: radial-gradient(1400px 900px at 28% 40%, #12384c 0%, var(--bg) 70%);
+  background: var(--bg);
 }
 button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
@@ -45,19 +47,20 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 400; margin: 0; text
 #app { height: 100%; display: flex; flex-direction: column; }
 .topbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding-block: 10px; flex: none; }
 .brand { display: flex; align-items: center; gap: 10px; background: none; border: 0; padding: 0; }
-.brand h1 { font-size: 24px; }
+.brand h1 { font-size: 24px; color: #fff; text-shadow: 0 2px 0 rgba(0, 0, 0, .25); }
 .brand-mark { width: 28px; height: 28px; }
 .topbar .spacer { flex: 1; }
-.chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink-2); font-size: 14px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; background: var(--card); color: var(--ink-2); font-size: 14px; font-weight: 700; }
 .chip strong { color: var(--ink); letter-spacing: .14em; }
 
 /* Main split */
 .split { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 18px; padding-bottom: 14px; }
-.board-wrap { position: relative; min-height: 0; min-width: 0; border-radius: 22px; overflow: hidden; background: radial-gradient(closest-side, #1f6f93 0%, #11506f 55%, #0b3247 100%); box-shadow: inset 0 0 80px rgba(0, 0, 0, .45); }
+.board-wrap { position: relative; min-height: 0; min-width: 0; border-radius: 22px; overflow: hidden; background: var(--sea); box-shadow: inset 0 0 0 3px rgba(255, 255, 255, .18), 0 6px 18px rgba(0, 0, 0, .25); }
 .board-wrap svg { width: 100%; height: 100%; display: block; }
 .side { min-height: 0; overflow-y: auto; display: grid; gap: 12px; align-content: start; padding-right: 2px; padding-bottom: 8px; }
 @media (max-width: 900px) {
   #app { height: auto; }
+  .board-wrap { touch-action: pan-y; }
   .split { grid-template-columns: minmax(0, 1fr); }
   .board-wrap { height: min(96vw, 72vh); }
   .side { overflow: visible; }
@@ -65,38 +68,38 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 400; margin: 0; text
 
 .hint {
   position: absolute; left: 50%; top: 14px; transform: translateX(-50%);
-  background: rgba(8, 22, 31, .88); border: 1px solid var(--accent); color: var(--ink);
+  background: var(--card); border: 2px solid var(--accent); color: var(--ink);
   padding: 8px 16px; border-radius: 999px; font-weight: 700; font-size: 15px; max-width: calc(100% - 24px);
   text-align: center; pointer-events: none; box-shadow: 0 6px 20px rgba(0, 0, 0, .35);
 }
 .mapbtn { position: absolute; right: 12px; top: 12px; }
-.mapbtn .btn { white-space: nowrap; background: rgba(8, 22, 31, .85); border-color: var(--accent); }
+.mapbtn .btn { white-space: nowrap; background: var(--card); border-color: var(--accent); }
 .legend { position: absolute; left: 12px; bottom: 12px; display: flex; gap: 6px; flex-wrap: wrap; max-width: calc(100% - 24px); }
-.legend span { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; background: rgba(8, 22, 31, .78); padding: 3px 8px 3px 4px; border-radius: 999px; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; background: rgba(247, 240, 224, .92); padding: 3px 8px 3px 4px; border-radius: 999px; color: var(--ink-2); }
 .legend i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
 @media (max-width: 520px) { .legend { display: none; } .hint { font-size: 13px; top: 8px; } }
 
 /* Cards */
-.card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.card { background: var(--card); border: 1px solid var(--line); box-shadow: 0 3px 0 #c9b88f, 0 6px 16px rgba(0, 0, 0, .18); border-radius: 16px; padding: 16px; display: grid; gap: 12px; min-width: 0; }
 .card h3 { font-size: 20px; }
 .card p { margin: 0; color: var(--ink-2); }
 .label { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 800; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
 
 /* Buttons */
-.btn { border: 1px solid var(--line); background: var(--card-2); border-radius: 12px; padding: 10px 16px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: transform .08s ease, background .15s ease, border-color .15s; }
-.btn:hover:not(:disabled) { background: #1d4659; border-color: #3a6d84; }
+.btn { border: 1px solid var(--line); background: #fffaf0; box-shadow: 0 2px 0 var(--line); border-radius: 12px; padding: 10px 16px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: transform .08s ease, background .15s ease, border-color .15s; }
+.btn:hover:not(:disabled) { background: #fff; border-color: #b9a77d; }
 .btn:active:not(:disabled) { transform: translateY(1px); }
 .btn:disabled { opacity: .4; cursor: not-allowed; }
-.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
-.btn.primary:hover:not(:disabled) { background: #ffc27c; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; box-shadow: 0 3px 0 #b8611a; }
+.btn.primary:hover:not(:disabled) { background: #ff9f42; }
 .btn.big { width: 100%; padding: 14px 16px; font-size: 18px; border-radius: 14px; }
-.btn.ghost { background: transparent; }
+.btn.ghost { background: transparent; box-shadow: none; }
 .btn.small { padding: 6px 11px; font-size: 14px; border-radius: 10px; }
 .btn.danger { color: var(--bad); }
 .btn.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent) inset; }
-input[type=text], select { background: #081923; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; min-width: 0; }
+input[type=text], select { background: #fffdf7; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; min-width: 0; }
 input[type=text] { width: 100%; }
-input[type=text]::placeholder { color: #6a8e95; }
+input[type=text]::placeholder { color: #a49a84; }
 .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .row > input { flex: 1 1 140px; }
 .note { font-size: 14px; color: var(--muted); margin: 0; }
@@ -104,27 +107,27 @@ input[type=text]::placeholder { color: #6a8e95; }
 
 /* Scoreboard */
 .score { display: grid; gap: 6px; }
-.prow { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 12px; background: #0b2230; border: 2px solid transparent; }
-.prow.turn { border-color: var(--accent); background: #10293a; }
-.avatar { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; color: #10181a; font-size: 15px; box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .25); }
+.prow { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 12px; background: var(--well); border: 2px solid transparent; }
+.prow.turn { border-color: var(--accent); background: #fff6e6; }
+.avatar { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; color: #fff; text-shadow: 0 1px 1px rgba(0, 0, 0, .45); font-size: 15px; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .2), inset 0 -3px 0 rgba(0, 0, 0, .2); }
 .pname { font-weight: 800; font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pmeta { font-size: 13px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; }
 .pvp { text-align: right; font-family: var(--font-display); font-size: 26px; line-height: 1; }
 .pvp small { display: block; font-family: var(--font-body); font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
 .tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 800; background: var(--accent); color: var(--accent-ink); }
-.tag.soft { background: #23495b; color: var(--ink); }
+.tag.soft { background: #e2d4b2; color: var(--ink); }
 
 /* Turn card */
 .turncard { border-width: 2px; }
-.turncard.mine { border-color: var(--accent); background: linear-gradient(180deg, #1a3a49, var(--card)); }
+.turncard.mine { border-color: var(--accent); background: linear-gradient(180deg, #fff3de, var(--card)); }
 .instr { font-family: var(--font-display); font-size: 24px; line-height: 1.15; }
 .instr-sub { color: var(--ink-2); font-size: 15px; margin-top: 4px; }
 .whose { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--ink-2); }
 .whose i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
 
 .dice { display: flex; gap: 10px; align-items: center; }
-.die { width: 42px; height: 42px; border-radius: 10px; background: linear-gradient(145deg, #fffaf0, #e7dcc4); display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); padding: 6px; box-shadow: 0 3px 0 #b9ab8c, 0 6px 12px rgba(0, 0, 0, .35); }
-.die i { width: 7px; height: 7px; border-radius: 50%; background: #2a2620; place-self: center; }
+.die { width: 42px; height: 42px; border-radius: 10px; background: linear-gradient(145deg, #ffffff, #dce9f5); border: 2px solid #6d8fb3; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); padding: 6px; box-shadow: 0 3px 0 #6d8fb3, 0 6px 12px rgba(0, 0, 0, .25); }
+.die i { width: 7px; height: 7px; border-radius: 50%; background: #3f6b98; place-self: center; }
 .die.roll { animation: tumble .55s ease; }
 @keyframes tumble { 0% { transform: rotate(-120deg) scale(.5); } 70% { transform: rotate(10deg) scale(1.08); } 100% { transform: none; } }
 .dice-sum { font-family: var(--font-display); font-size: 30px; }
@@ -134,7 +137,7 @@ input[type=text]::placeholder { color: #6a8e95; }
 .rcard { position: relative; border-radius: 12px; padding: 10px 4px 8px; display: grid; justify-items: center; gap: 2px; border: 0; min-width: 0; box-shadow: inset 0 -4px 0 rgba(0, 0, 0, .2), 0 3px 8px rgba(0, 0, 0, .25); }
 .rcard .n { font-size: 26px; font-weight: 800; line-height: 1; }
 .rcard .l { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
-.rcard.zero { filter: saturate(.25) brightness(.6); }
+.rcard.zero { filter: saturate(.2) brightness(.95); opacity: .55; }
 .rcard svg { width: 26px; height: 26px; }
 .r-wood { background: linear-gradient(160deg, #3fa463, #24713f); color: #effff4; }
 .r-brick { background: linear-gradient(160deg, #e17f50, #b1532b); color: #fff4ee; }
@@ -147,8 +150,8 @@ input[type=text]::placeholder { color: #6a8e95; }
 
 /* Build */
 .build { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.bbtn { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 4px 10px; align-items: center; text-align: left; padding: 10px; border-radius: 12px; border: 1px solid var(--line); background: var(--card-2); }
-.bbtn:hover:not(:disabled) { border-color: #3a6d84; background: #1d4659; }
+.bbtn { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 4px 10px; align-items: center; text-align: left; padding: 10px; border-radius: 12px; border: 1px solid var(--line); background: #fffaf0; box-shadow: 0 2px 0 var(--line); }
+.bbtn:hover:not(:disabled) { border-color: #b9a77d; background: #fff; }
 .bbtn:disabled { cursor: not-allowed; }
 .bbtn:disabled .bname, .bbtn:disabled .bico { opacity: .45; }
 .bbtn.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent) inset; }
@@ -161,22 +164,22 @@ input[type=text]::placeholder { color: #6a8e95; }
 .why { grid-column: 1 / -1; font-size: 12px; color: var(--muted); }
 
 /* Tabs */
-.tabs { display: flex; gap: 4px; background: #0b2230; padding: 4px; border-radius: 12px; }
+.tabs { display: flex; gap: 4px; background: var(--card-2); padding: 4px; border-radius: 12px; }
 .tabs button { flex: 1; border: 0; background: transparent; padding: 8px 6px; border-radius: 9px; font-weight: 800; font-size: 14px; color: var(--ink-2); position: relative; }
-.tabs button.on { background: var(--card-2); color: var(--ink); }
+.tabs button.on { background: #fffaf0; color: var(--ink); box-shadow: 0 1px 0 var(--line); }
 .tabs .dotn { position: absolute; top: 4px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
 
 .trade-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
 .trade-grid .rcard { padding: 8px 2px 6px; }
 .trade-grid .rcard .n { font-size: 20px; }
-.offer { padding: 12px; border-radius: 12px; background: #0b2230; border: 2px dashed var(--accent); display: grid; gap: 10px; }
+.offer { padding: 12px; border-radius: 12px; background: #fffaf0; border: 2px dashed var(--accent); display: grid; gap: 10px; }
 .offer .line { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .mini { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px 2px 3px; border-radius: 8px; font-weight: 800; font-size: 14px; }
 .mini svg { width: 16px; height: 16px; }
 .list { display: grid; gap: 6px; }
-.li { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 12px; background: #0b2230; border: 1px solid var(--line); min-width: 0; }
+.li { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 12px; background: var(--well); border: 1px solid var(--line); min-width: 0; }
 .li .grow { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dev { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 12px; background: #0b2230; border: 1px solid var(--line); }
+.dev { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 12px; background: var(--well); border: 1px solid var(--line); }
 .dev .grow { flex: 1; min-width: 0; }
 .dev b { display: block; }
 .dev span { font-size: 13px; color: var(--muted); }
@@ -188,21 +191,21 @@ input[type=text]::placeholder { color: #6a8e95; }
 
 .hero h2 { font-size: clamp(26px, 3.2vw, 38px); line-height: 1.1; }
 
-.overlay { position: fixed; inset: 0; background: rgba(4, 14, 20, .72); display: grid; place-items: center; z-index: 50; padding: 16px; }
+.overlay { position: fixed; inset: 0; background: rgba(10, 30, 50, .6); display: grid; place-items: center; z-index: 50; padding: 16px; }
 .overlay .card { max-width: 440px; width: 100%; text-align: center; justify-items: center; }
 .overlay h2 { font-size: 36px; }
 .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 12px 18px; border-radius: 12px; font-weight: 700; z-index: 60; max-width: calc(100% - 32px); box-shadow: 0 8px 30px rgba(0, 0, 0, .4); }
 
 /* Board interaction */
 .spot { cursor: pointer; }
-.spot .ring { fill: rgba(255, 178, 92, .35); stroke: #fff; stroke-width: 3; animation: pulse 1.1s ease-in-out infinite; }
+.spot .ring { fill: rgba(242, 140, 40, .45); stroke: #fff; stroke-width: 3; animation: pulse 1.1s ease-in-out infinite; }
 .spot:hover .ring { fill: var(--accent); }
 .edge-hit { stroke: transparent; stroke-width: 26; stroke-linecap: round; cursor: pointer; }
 .edge-glow { stroke: #fff; stroke-width: 6; stroke-linecap: round; stroke-dasharray: 2 9; opacity: .9; pointer-events: none; animation: pulse 1.1s ease-in-out infinite; }
 .edge-hit:hover + .edge-glow { stroke: var(--accent); stroke-dasharray: none; }
-.hex-target { fill: rgba(255, 178, 92, .14); stroke: #fff; stroke-width: 3; stroke-dasharray: 8 6; cursor: pointer; }
-.hex-target:hover { fill: rgba(255, 178, 92, .4); }
-.city-target { fill: rgba(255, 178, 92, .25); stroke: #fff; stroke-width: 3; cursor: pointer; pointer-events: all; animation: pulse 1.1s ease-in-out infinite; }
+.hex-target { fill: rgba(242, 140, 40, .14); stroke: #fff; stroke-width: 3; stroke-dasharray: 8 6; cursor: pointer; }
+.hex-target:hover { fill: rgba(242, 140, 40, .4); }
+.city-target { fill: rgba(242, 140, 40, .3); stroke: #fff; stroke-width: 3; cursor: pointer; pointer-events: all; animation: pulse 1.1s ease-in-out infinite; }
 .hot-hex { fill: none; stroke: #fff6c8; stroke-width: 5; pointer-events: none; animation: glow 1.6s ease-in-out 2; }
 @keyframes pulse { 50% { opacity: .45; } }
 @keyframes glow { 50% { stroke-width: 9; } }
@@ -212,7 +215,7 @@ input[type=text]::placeholder { color: #6a8e95; }
 
 /* Map controls, full-screen map and minimized map */
 .mapctl { position: absolute; right: 12px; bottom: 12px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; max-width: calc(100% - 24px); }
-.mapctl .btn { white-space: nowrap; background: rgba(8, 22, 31, .88); padding: 8px 12px; font-size: 14px; }
+.mapctl .btn { white-space: nowrap; background: var(--card); padding: 8px 12px; font-size: 14px; }
 .mapctl .btn.primary { background: var(--accent); }
 .btn.icon { padding: 8px; width: 40px; height: 40px; }
 .board-wrap.pz { touch-action: none; cursor: grab; }
@@ -230,7 +233,7 @@ input[type=text]::placeholder { color: #6a8e95; }
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   position: absolute; left: 0; right: 0; bottom: 0;
   padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
-  background: rgba(8, 22, 31, .94); border-top: 1px solid var(--line);
+  background: var(--card); border-top: 2px solid var(--line); color: var(--ink);
 }
 .fb-text { font-weight: 800; flex: 1 1 160px; min-width: 0; }
 .fb-res { display: flex; gap: 4px; flex-wrap: wrap; }
@@ -246,6 +249,22 @@ body.map-open { overflow: hidden; }
   .board-wrap:not(.full) .mapctl .btn { padding: 6px 10px; font-size: 13px; }
   .mapbtn .btn { padding: 8px 12px; font-size: 14px; }
 }
+
+/* Dice shown on the map, as on a real table */
+.mapdice { position: absolute; left: 12px; bottom: 12px; display: flex; gap: 8px; align-items: center; pointer-events: none; }
+.mapdice .die { width: 52px; height: 52px; padding: 8px; }
+.mapdice .die i { width: 9px; height: 9px; }
+.board-wrap.min .mapdice, .board-wrap.full .mapdice { display: none; }
+@media (max-width: 520px) { .mapdice .die { width: 38px; height: 38px; padding: 5px; } .mapdice .die i { width: 6px; height: 6px; } }
+.side .bankrow { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; align-items: end; }
+.bankrow .rcard { padding: 6px 2px 5px; }
+.bankrow .rcard .n { font-size: 17px; }
+.bankrow .rcard svg { width: 18px; height: 18px; }
+.bankrow .devc { background: linear-gradient(160deg, #8a6bd1, #5d43a6); color: #fff; }
+.legend[hidden] { display: none; }
+@media (max-width: 900px) { .mapdice { display: none; } }
+.topbar .btn.ghost { color: #fff; border-color: rgba(255, 255, 255, .55); }
+.topbar .btn.ghost:hover:not(:disabled) { background: rgba(255, 255, 255, .15); border-color: #fff; }
 </style>
 <div id="app"></div>
 <script>
@@ -350,11 +369,36 @@ const Engine = (() => {
   })();
 
   // ---------- Board generation ----------
+  // Largest group of touching tiles that share a terrain.
+  function biggestCluster(terrains) {
+    const seen = new Set();
+    let best = 0;
+    terrains.forEach((t, i) => {
+      if (seen.has(i)) return;
+      let n = 0;
+      const stack = [i];
+      seen.add(i);
+      while (stack.length) {
+        const h = stack.pop();
+        n++;
+        G.hexes[h].nb.forEach((j) => { if (!seen.has(j) && terrains[j] === t) { seen.add(j); stack.push(j); } });
+      }
+      best = Math.max(best, n);
+    });
+    return best;
+  }
+
   function generateBoard() {
-    const terrains = shuffle([
+    const pool = [
       ...Array(4).fill('forest'), ...Array(4).fill('pasture'), ...Array(4).fill('fields'),
       ...Array(3).fill('hills'), ...Array(3).fill('mountains'), 'desert',
-    ]);
+    ];
+    // At most 2 tiles of the same terrain touch, so no resource ends up in a block of 3 or more.
+    let terrains;
+    for (let tries = 0; tries < 20000; tries++) {
+      terrains = shuffle(pool.slice());
+      if (biggestCluster(terrains) <= 2) break;
+    }
     const TOKENS = [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12];
     let nums;
     for (let tries = 0; tries < 5000; tries++) {
@@ -401,6 +445,7 @@ const Engine = (() => {
       setup: null,
       discards: null,
       trade: null,
+      bids: {},
       longest: { holder: -1, len: 0 },
       army: { holder: -1, size: 0 },
       log: [],
@@ -908,9 +953,7 @@ const Engine = (() => {
     if (s.phase !== 'main') fail('La partida no está en curso.');
     mustBeCur(s, p);
     if (s.turn.step !== 'main') fail('Primero tira los dados.');
-    const give = emptyRes(), get = emptyRes();
-    RES.forEach((r) => { give[r] = Math.max(0, Math.floor(+a.give?.[r] || 0)); get[r] = Math.max(0, Math.floor(+a.get?.[r] || 0)); });
-    if (!total(give) || !total(get)) fail('La oferta debe dar y pedir algo.');
+    const { give, get } = readOffer(a);
     if (!hasRes(s.players[p], give)) fail('No tienes lo que ofreces.');
     s.trade = { give, get, resp: {} };
     log(s, `${s.players[p].name} ofrece ${fmtRes(give)} a cambio de ${fmtRes(get)}.`);
@@ -946,11 +989,62 @@ const Engine = (() => {
     s.trade = null;
   };
 
+  // Proposals from the other players to the player whose turn it is. Each player keeps at most one open.
+  function readOffer(a) {
+    const give = emptyRes(), get = emptyRes();
+    RES.forEach((r) => { give[r] = Math.max(0, Math.floor(+a.give?.[r] || 0)); get[r] = Math.max(0, Math.floor(+a.get?.[r] || 0)); });
+    if (!total(give) || !total(get)) fail('La oferta debe dar y pedir algo.');
+    if (RES.some((r) => give[r] && get[r])) fail('No puedes dar y pedir el mismo recurso.');
+    return { give, get };
+  }
+
+  H.bid = (s, a, p) => {
+    if (s.phase !== 'main') fail('La partida no está en curso.');
+    if (p < 0) fail('No estás en esta mesa.');
+    if (p === s.turn.cur) fail('En tu turno haces ofertas a todos desde Comercio.');
+    if (s.turn.step !== 'main') fail(`Espera a que ${s.players[s.turn.cur].name} tire los dados.`);
+    const { give, get } = readOffer(a);
+    if (!hasRes(s.players[p], give)) fail('No tienes lo que ofreces.');
+    s.bids = s.bids || {};
+    s.bids[p] = { give, get };
+    log(s, `${s.players[p].name} propone a ${s.players[s.turn.cur].name}: da ${fmtRes(give)} y pide ${fmtRes(get)}.`);
+  };
+
+  H.withdrawBid = (s, a, p) => {
+    if (s.bids) delete s.bids[p];
+  };
+
+  H.rejectBid = (s, a, p) => {
+    mustBeCur(s, p);
+    const o = Number(a.target);
+    if (!s.bids || !s.bids[o]) fail('Esa propuesta ya no está.');
+    delete s.bids[o];
+    log(s, `${s.players[p].name} rechaza la propuesta de ${s.players[o].name}.`);
+  };
+
+  H.acceptBid = (s, a, p) => {
+    mustBeCur(s, p);
+    if (s.turn.step !== 'main') fail('Termina la acción actual primero.');
+    const o = Number(a.target);
+    const b = s.bids && s.bids[o];
+    if (!b) fail('Esa propuesta ya no está.');
+    const me = s.players[p], other = s.players[o];
+    if (!hasRes(other, b.give)) { delete s.bids[o]; fail(`${other.name} ya no tiene lo que ofrecía.`); }
+    if (!hasRes(me, b.get)) fail('No tienes lo que te piden.');
+    RES.forEach((r) => {
+      me.res[r] += b.give[r] - b.get[r];
+      other.res[r] += b.get[r] - b.give[r];
+    });
+    log(s, `${me.name} acepta la propuesta de ${other.name} (${fmtRes(b.give)} ⇄ ${fmtRes(b.get)}).`);
+    delete s.bids[o];
+  };
+
   H.endTurn = (s, a, p) => {
     if (s.phase !== 'main') fail('La partida no está en curso.');
     mustBeCur(s, p);
     if (s.turn.step !== 'main') fail(s.turn.step === 'roll' ? 'Primero tira los dados.' : 'Termina la acción actual primero.');
     s.trade = null;
+    s.bids = {};
     const n = s.players.length;
     s.turnNo++;
     s.turn = { cur: (p + 1) % n, step: 'roll', rolled: false, devPlayed: false, freeRoads: 0 };
@@ -973,7 +1067,7 @@ const Engine = (() => {
 
   return {
     RES, RES_NAME, TERRAIN_RES, TERRAIN_NAME, COST, DEV_NAME, DEV_HELP, PLAYER_COLORS, PIECES, WIN_VP, G,
-    newGame, generateBoard, apply, total, hasRes, ratios, settlementSpots, roadSpots, citySpots, stealTargets,
+    newGame, generateBoard, biggestCluster, apply, total, hasRes, ratios, settlementSpots, roadSpots, citySpots, stealTargets,
     roadLength, victoryPoints, fmtRes,
   };
 })();
@@ -1001,13 +1095,14 @@ const Board = (() => {
     }).join(' ');
   }
 
+  // Flat cartoon tiles: [face, rim, highlight].
   const TERR = {
-    forest: ['#57a463', '#1f5c36'],
-    pasture: ['#b9e27a', '#78ac46'],
-    fields: ['#f7d672', '#d9a535'],
-    hills: ['#e28a57', '#a54d27'],
-    mountains: ['#b3b8c6', '#646a7e'],
-    desert: ['#f0dcaa', '#c9a96f'],
+    forest: ['#3aa543', '#1f7a2c', '#63c46b'],
+    pasture: ['#a6d846', '#76a826', '#c6ec74'],
+    fields: ['#f6c935', '#d09612', '#ffe27a'],
+    hills: ['#ec7b3d', '#b44d1d', '#f9a06a'],
+    mountains: ['#b3b7be', '#7a7f88', '#d6d9dd'],
+    desert: ['#e6d9a4', '#b8a867', '#f3ebc6'],
   };
 
   const RES_ICON = {
@@ -1022,86 +1117,111 @@ const Board = (() => {
   const RES_COLOR = { wood: '#2f8a4e', brick: '#cf6a3d', sheep: '#86b94c', wheat: '#e0aa31', ore: '#737b92', any: '#3c4a52' };
 
   function defs() {
-    const grads = Object.entries(TERR).map(([k, [a, b]]) => `<radialGradient id="g-${k}" cx="38%" cy="30%" r="80%"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></radialGradient>`).join('');
-    return `<defs>${grads}
-      <radialGradient id="g-token" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fffaf0"/><stop offset="1" stop-color="#e2d2ab"/></radialGradient>
-      <radialGradient id="g-sand" cx="50%" cy="50%" r="60%"><stop offset=".7" stop-color="#e8d49c"/><stop offset="1" stop-color="#c8ad6d"/></radialGradient>
-      <linearGradient id="g-stone" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6d7180"/><stop offset="1" stop-color="#2b2d36"/></linearGradient>
-      <pattern id="p-rows" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(28)"><rect width="9" height="3.6" fill="#b98419" opacity=".35"/></pattern>
-      <pattern id="p-waves" width="90" height="60" patternUnits="userSpaceOnUse"><path d="M6 20q8 -7 16 0t16 0M50 48q8 -7 16 0t16 0" stroke="#7cc6dd" stroke-width="1.6" fill="none" opacity=".35"/></pattern>
-      <filter id="f-shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="2.4" flood-color="#000" flood-opacity=".5"/></filter>
-      <filter id="f-soft" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="6" stdDeviation="7" flood-color="#021018" flood-opacity=".55"/></filter>
-      <filter id="f-grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="7"/><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .5 0"/><feComposite in2="SourceGraphic" operator="in"/></filter>
+    return `<defs>
+      <pattern id="p-waves" width="120" height="80" patternUnits="userSpaceOnUse"><path d="M10 24q10 -8 20 0t20 0M66 62q10 -8 20 0t20 0" stroke="#5aa6e0" stroke-width="2" fill="none" stroke-linecap="round" opacity=".55"/></pattern>
+      <filter id="f-shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="2.5" stdDeviation="1.6" flood-color="#0b2a44" flood-opacity=".45"/></filter>
+      <filter id="f-soft" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#0b2a44" flood-opacity=".35"/></filter>
     </defs>`;
   }
 
-  // ----- terrain art -----
-  const tree = (x, y, s = 1) => `<ellipse cx="${x + 3}" cy="${y + 8 * s}" rx="${7 * s}" ry="${2.4 * s}" fill="rgba(0,0,0,.28)"/><rect x="${x - 1.3}" y="${y + 3 * s}" width="2.6" height="${5 * s}" fill="#4a3320"/><path d="M${x} ${y - 15 * s}L${x - 8.5 * s} ${y + 4 * s}H${x + 8.5 * s}Z" fill="#1a5130"/><path d="M${x} ${y - 15 * s}L${x + 8.5 * s} ${y + 4 * s}H${x}Z" fill="#2f7e48"/><path d="M${x} ${y - 19 * s}L${x - 6 * s} ${y - 6 * s}H${x + 6 * s}Z" fill="#1f5c37"/><path d="M${x} ${y - 19 * s}L${x + 6 * s} ${y - 6 * s}H${x}Z" fill="#3a9157"/>`;
-  const sheep = (x, y) => `<ellipse cx="${x + 2}" cy="${y + 6}" rx="8" ry="2.2" fill="rgba(0,0,0,.22)"/><rect x="${x - 4}" y="${y + 1}" width="1.8" height="5" fill="#3b3a35"/><rect x="${x + 2.5}" y="${y + 1}" width="1.8" height="5" fill="#3b3a35"/><ellipse cx="${x}" cy="${y - 1}" rx="7.5" ry="5.2" fill="#fbfaf2"/><ellipse cx="${x + 1.5}" cy="${y + 1}" rx="5" ry="2.6" fill="#e1dfd2"/><ellipse cx="${x + 7.5}" cy="${y - 3}" rx="2.8" ry="2.4" fill="#3b3a35"/>`;
-  const tuft = (x, y) => `<path d="M${x - 3} ${y}l1.5-4M${x} ${y}v-5M${x + 3} ${y}l-1.5-4" stroke="#5c9136" stroke-width="1.4" stroke-linecap="round"/>`;
-  const sheaf = (x, y) => `<ellipse cx="${x + 2}" cy="${y + 8}" rx="6" ry="2" fill="rgba(0,0,0,.2)"/><path d="M${x - 5} ${y + 7}L${x} ${y - 9}L${x + 5} ${y + 7}Z" fill="#c8901f"/><path d="M${x} ${y - 9}L${x + 5} ${y + 7}H${x}Z" fill="#e8b440"/><rect x="${x - 4}" y="${y}" width="8" height="2" fill="#8a5d12"/>`;
-  const peak = (x, y, s = 1) => `<path d="M${x - 17 * s} ${y + 10 * s}L${x} ${y - 16 * s}L${x + 17 * s} ${y + 10 * s}Z" fill="#555b6d"/><path d="M${x} ${y - 16 * s}L${x + 17 * s} ${y + 10 * s}H${x + 2 * s}Z" fill="#3e4352"/><path d="M${x} ${y - 16 * s}L${x - 6 * s} ${y - 6.5 * s}l3 1.6 3-2.6 3 2.4 3-1.2Z" fill="#f5f7fb"/>`;
-  const mound = (x, y) => `<path d="M${x - 14} ${y + 6}q14 -18 28 0z" fill="#9c4622"/><path d="M${x} ${y - 3}q7 2 14 9h-14z" fill="#7f3518" opacity=".7"/>`;
-  const bricks = (x, y) => `<g><rect x="${x - 8}" y="${y - 2}" width="7" height="4" fill="#b2502a" stroke="#6d2c12" stroke-width=".8"/><rect x="${x}" y="${y - 2}" width="7" height="4" fill="#c25e34" stroke="#6d2c12" stroke-width=".8"/><rect x="${x - 4}" y="${y - 6}" width="7" height="4" fill="#d1693c" stroke="#6d2c12" stroke-width=".8"/></g>`;
+  // ----- terrain art: one big centered icon per tile, like a board-game illustration -----
+  const OUT = 'stroke="#2b2b2b" stroke-opacity=".28" stroke-width="1.2" stroke-linejoin="round"';
+  const tuft = (x, y, c) => `<path d="M${x - 4} ${y}l1.6-5M${x} ${y}v-6M${x + 4} ${y}l-1.6-5" stroke="${c}" stroke-width="1.6" stroke-linecap="round" fill="none"/>`;
+  const pine = (x, y, s = 1) => `<g ${OUT}><rect x="${x - 2.2 * s}" y="${y + 9 * s}" width="${4.4 * s}" height="${6 * s}" fill="#7a4a22"/>
+    <path d="M${x} ${y - 22 * s}L${x - 15 * s} ${y + 10 * s}H${x + 15 * s}Z" fill="#1d7a33"/><path d="M${x} ${y - 22 * s}L${x + 15 * s} ${y + 10 * s}H${x}Z" fill="#16652a"/>
+    <path d="M${x} ${y - 26 * s}L${x - 10 * s} ${y - 4 * s}H${x + 10 * s}Z" fill="#279a42"/><path d="M${x} ${y - 26 * s}L${x + 10 * s} ${y - 4 * s}H${x}Z" fill="#1e8137"/></g>`;
+  const sheepIcon = (x, y) => `<g ${OUT}><rect x="${x - 8}" y="${y + 4}" width="3" height="8" rx="1" fill="#3a3a3a"/><rect x="${x + 4}" y="${y + 4}" width="3" height="8" rx="1" fill="#3a3a3a"/>
+    <path d="M${x - 14} ${y + 2}c-4 -4 -1 -10 4 -9c1 -5 8 -6 11 -2c4 -3 10 -1 10 4c5 1 5 8 1 10c0 4 -6 6 -9 3c-3 3 -10 3 -12 0c-4 1 -8 -2 -5 -6z" fill="#ffffff"/>
+    <ellipse cx="${x + 15}" cy="${y - 4}" rx="5.5" ry="4.5" fill="#3a3a3a"/><ellipse cx="${x + 12}" cy="${y - 8}" rx="2.4" ry="1.3" fill="#3a3a3a"/><circle cx="${x + 16.5}" cy="${y - 5}" r="1" fill="#fff"/></g>`;
+  const wheatIcon = (x, y) => {
+    let g = `<path d="M${x} ${y + 16}V${y - 14}" stroke="#a87412" stroke-width="2.4" stroke-linecap="round"/><path d="M${x} ${y + 12}q-9 -8 -12 -20M${x} ${y + 12}q9 -8 12 -20" stroke="#a87412" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+    const grain = (gx, gy, rot) => `<ellipse cx="${gx}" cy="${gy}" rx="2.6" ry="4.6" transform="rotate(${rot} ${gx} ${gy})" fill="#fbe08a" stroke="#b07b10" stroke-width="1"/>`;
+    for (let i = 0; i < 4; i++) { g += grain(x - 3.2, y - 10 + i * 6, -25) + grain(x + 3.2, y - 10 + i * 6, 25); }
+    g += grain(x, y - 16, 0) + grain(x - 12, y - 10, -30) + grain(x + 12, y - 10, 30);
+    return `<g>${g}</g>`;
+  };
+  const brickIcon = (x, y) => {
+    const br = (bx, by, w) => `<rect x="${bx}" y="${by}" width="${w}" height="7" rx="1.5" fill="#fbd6bf" stroke="#b24f22" stroke-width="1.2"/>`;
+    return `<g>${br(x - 19, y - 2, 12)}${br(x - 6, y - 2, 12)}${br(x + 7, y - 2, 12)}${br(x - 13, y - 10, 12)}${br(x, y - 10, 12)}${br(x - 6, y - 18, 12)}</g>`;
+  };
+  const rockIcon = (x, y) => `<g ${OUT}><path d="M${x - 20} ${y + 6}q-2 -10 8 -12q6 -6 13 0q4 8 -2 12z" fill="#f2f3f5"/><path d="M${x - 4} ${y + 6}q-1 -13 10 -14q9 1 9 9q1 5 -4 5z" fill="#e2e4e8"/><path d="M${x - 9} ${y - 7}q2 -9 10 -8q7 2 5 8z" fill="#fafafa"/>
+    <path d="M${x - 14} ${y + 1}h6M${x + 4} ${y - 1}h7" stroke="#b6b9c0" stroke-width="1.4" stroke-linecap="round"/></g>`;
+  const cactus = (x, y) => `<g ${OUT}><path d="M${x - 3.5} ${y + 18}V${y - 14}a3.5 3.5 0 0 1 7 0V${y + 18}z" fill="#5f9b4a"/><path d="M${x - 3.5} ${y + 2}h-6a3 3 0 0 1 -3 -3v-7a3 3 0 0 1 6 0v4h3z" fill="#5f9b4a"/><path d="M${x + 3.5} ${y - 2}h6a3 3 0 0 0 3 -3v-6a3 3 0 0 0 -6 0v3h-3z" fill="#5f9b4a"/></g>
+    <ellipse cx="${x}" cy="${y + 19}" rx="12" ry="2.5" fill="#b8a867" opacity=".6"/>`;
+  const pebbles = (x, y) => `<ellipse cx="${x}" cy="${y}" rx="4" ry="2.4" fill="#000" opacity=".12"/><ellipse cx="${x + 6}" cy="${y + 2}" rx="2.4" ry="1.6" fill="#000" opacity=".12"/>`;
 
-  function art(terrain, cx, cy, hi) {
-    const j = (i) => ((hi * 7 + i * 13) % 5) - 2;
-    const at = (pts, f) => pts.map(([x, y], i) => f(cx + x + j(i), cy + y + j(i + 2))).join('');
+  function art(terrain, cx, cy) {
+    const ix = cx, iy = cy - 24;
     switch (terrain) {
-      case 'forest': return at([[-22, -20], [0, -28], [22, -18], [-31, 4], [31, 6], [-20, 28], [20, 30], [0, 34]], (x, y) => tree(x, y, 0.95));
-      case 'pasture': return at([[-28, -14], [26, 20], [-12, 34], [30, -18], [6, -36], [-34, 12], [14, 36]], tuft) + at([[-14, -26], [24, -6], [-24, 20]], sheep);
-      case 'fields': return `<polygon points="${hexPts(hi, 0.9)}" fill="url(#p-rows)"/>` + at([[-24, -20], [24, -20], [-28, 18], [26, 20]], sheaf);
-      case 'hills': return at([[-20, -20], [20, -22], [-28, 16], [24, 22]], mound) + at([[0, -34], [0, 36]], bricks);
-      case 'mountains': return peak(cx - 18, cy - 18, 1) + peak(cx + 18, cy - 20, 0.9) + peak(cx - 22, cy + 22, 0.8) + peak(cx + 22, cy + 24, 0.85);
-      case 'desert': return `<path d="M${cx - 38} ${cy + 26}q16 -14 34 0t34 0" fill="#d8bd82"/><path d="M${cx - 30} ${cy - 22}q14 -12 28 0t28 0" fill="#ddc48d"/><path d="M${cx + 26} ${cy + 10}v-18m0 7h-6v-6m6 10h6v-8" stroke="#5c8a46" stroke-width="3.6" stroke-linecap="round" fill="none"/><ellipse cx="${cx - 26}" cy="${cy + 2}" rx="5" ry="3.4" fill="#a99069"/>`;
+      case 'forest': return tuft(cx - 30, cy + 8, '#1f7a2c') + tuft(cx + 30, cy + 8, '#1f7a2c') + pine(ix, iy + 2, 0.95);
+      case 'pasture': return tuft(cx - 30, cy + 6, '#76a826') + tuft(cx + 30, cy + 6, '#76a826') + tuft(cx - 22, cy - 26, '#76a826') + sheepIcon(ix - 2, iy + 2);
+      case 'fields': return tuft(cx - 30, cy + 6, '#d09612') + tuft(cx + 30, cy + 6, '#d09612') + wheatIcon(ix, iy + 2);
+      case 'hills': return pebbles(cx - 30, cy + 8) + pebbles(cx + 26, cy + 6) + brickIcon(ix, iy + 6);
+      case 'mountains': return pebbles(cx - 30, cy + 8) + pebbles(cx + 26, cy + 6) + rockIcon(ix, iy + 4);
+      case 'desert': return pebbles(cx - 26, cy + 14) + pebbles(cx + 20, cy - 16) + cactus(cx, cy - 4);
     }
     return '';
+  }
+
+  // A small sailing ship that carries the harbor's trade rate on its sail.
+  function ship(X, Y, type) {
+    const col = RES_COLOR[type];
+    return `<g filter="url(#f-shadow)">
+      <path d="M${X - 22} ${Y + 10}q22 8 44 0" stroke="#e9f6ff" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".8"/>
+      <path d="M${X - 20} ${Y + 1}h40l-7 10h-26z" fill="#c07a3a" stroke="#6b3f17" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M${X - 17} ${Y + 5}h34" stroke="#f2c27a" stroke-width="1.6"/>
+      <path d="M${X} ${Y + 1}V${Y - 34}" stroke="#6b3f17" stroke-width="2.2"/>
+      <path d="M${X} ${Y - 34}l9 3l-9 3z" fill="${col}"/>
+      <path d="M${X - 15} ${Y - 28}q15 -4 30 0v24q-15 4 -30 0z" fill="#fffdf6" stroke="#b9ae93" stroke-width="1.4" stroke-linejoin="round"/>
+    </g>
+    <svg x="${X - 8}" y="${Y - 28}" width="16" height="16" viewBox="0 0 24 24" style="color:${col}" aria-hidden="true">${RES_ICON[type]}</svg>
+    <text x="${X}" y="${Y - 6}" text-anchor="middle" font-family="Figtree, sans-serif" font-weight="900" font-size="10.5" fill="#3a2a1a">${type === 'any' ? '3:1' : '2:1'}</text>`;
   }
 
   function staticLayer(s) {
     const b = s.board;
     const out = [];
     out.push(`<rect x="-2000" y="-2000" width="4000" height="4000" fill="url(#p-waves)"/>`);
-    // shallow water + beach
-    out.push(`<g filter="url(#f-soft)">${b.hexes.map((_, hi) => `<polygon points="${hexPts(hi, 1.2)}" fill="#3aa2c2" opacity=".5"/>`).join('')}</g>`);
-    out.push(`<g>${b.hexes.map((_, hi) => `<polygon points="${hexPts(hi, 1.09)}" fill="url(#g-sand)" stroke="#e8d49c" stroke-width="2" stroke-linejoin="round"/>`).join('')}</g>`);
-    // harbors (piers sit on the beach, labels in the sea)
+    // shallow water, foam line and beach
+    out.push(`<g>${b.hexes.map((_, hi) => `<polygon points="${hexPts(hi, 1.24)}" fill="#3f93d6" stroke="#3f93d6" stroke-width="6" stroke-linejoin="round"/>`).join('')}</g>`);
+    out.push(`<g>${b.hexes.map((_, hi) => `<polygon points="${hexPts(hi, 1.16)}" fill="#dff3fb" stroke="#dff3fb" stroke-width="5" stroke-linejoin="round"/>`).join('')}</g>`);
+    out.push(`<g filter="url(#f-soft)">${b.hexes.map((_, hi) => `<polygon points="${hexPts(hi, 1.11)}" fill="#f1d898" stroke="#f1d898" stroke-width="4" stroke-linejoin="round"/>`).join('')}</g>`);
+    // harbors: wooden piers from both corners, ship out in the water
     b.ports.forEach((port) => {
       const e = G.edges[port.edge];
       const va = G.vertices[e.a], vb = G.vertices[e.b];
       const h = G.hexes[e.hexes[0]];
       const mx = (va.x + vb.x) / 2, my = (va.y + vb.y) / 2;
       const dx = mx - h.x, dy = my - h.y, len = Math.hypot(dx, dy);
-      const px = mx + (dx / len) * 0.66, py = my + (dy / len) * 0.66;
-      const X = px * S, Y = py * S;
+      const ux = dx / len, uy = dy / len;
       [va, vb].forEach((v) => {
-        out.push(`<line x1="${P(v.x)}" y1="${P(v.y)}" x2="${P(px)}" y2="${P(py)}" stroke="#4a2f17" stroke-width="8" stroke-linecap="round"/>`);
-        out.push(`<line x1="${P(v.x)}" y1="${P(v.y)}" x2="${P(px)}" y2="${P(py)}" stroke="#a87a48" stroke-width="5" stroke-linecap="round" stroke-dasharray="5 2"/>`);
+        const x2 = v.x + ux * 0.42, y2 = v.y + uy * 0.42;
+        out.push(`<line x1="${P(v.x)}" y1="${P(v.y)}" x2="${P(x2)}" y2="${P(y2)}" stroke="#7b4a20" stroke-width="10" stroke-linecap="butt"/>`);
+        out.push(`<line x1="${P(v.x)}" y1="${P(v.y)}" x2="${P(x2)}" y2="${P(y2)}" stroke="#d99a52" stroke-width="7" stroke-dasharray="3 2.2"/>`);
       });
-      const col = RES_COLOR[port.type];
+      const X = (mx + ux * 0.8) * S, Y = (my + uy * 0.8) * S + 10;
       const name = port.type === 'any' ? 'Puerto 3:1: cambia 3 iguales por 1' : `Puerto 2:1 de ${E.RES_NAME[port.type]}`;
-      out.push(`<g filter="url(#f-shadow)"><circle cx="${X}" cy="${Y}" r="22" fill="#fbf5e6" stroke="${col}" stroke-width="4"/></g>`);
-      out.push(`<svg x="${X - 9}" y="${Y - 17}" width="18" height="18" viewBox="0 0 24 24" style="color:${col}" aria-hidden="true">${RES_ICON[port.type]}</svg>`);
-      out.push(`<text x="${X}" y="${Y + 14}" text-anchor="middle" font-family="Figtree, sans-serif" font-weight="900" font-size="11.5" fill="#1d2629">${port.type === 'any' ? '3:1' : '2:1'}</text>`);
-      out.push(`<title>${name}</title>`);
+      out.push(`<g><title>${name}</title>${ship(X, Y, port.type)}</g>`);
     });
-    // terrain tiles
-    out.push(`<g filter="url(#f-shadow)">${b.hexes.map((hx, hi) => `<polygon points="${hexPts(hi, 0.975)}" fill="url(#g-${hx.terrain})" stroke="rgba(30,20,10,.45)" stroke-width="2" stroke-linejoin="round"/>`).join('')}</g>`);
-    out.push(`<g filter="url(#f-grain)" opacity=".18" style="mix-blend-mode:multiply">${b.hexes.map((_, hi) => `<polygon points="${hexPts(hi, 0.975)}" fill="#000"/>`).join('')}</g>`);
+    // terrain tiles: dark rim, flat face, light inner bevel
     b.hexes.forEach((hx, hi) => {
+      const [face, rim, hl] = TERR[hx.terrain];
       const h = G.hexes[hi];
       const cx = h.x * S, cy = h.y * S;
-      out.push(`<polygon points="${hexPts(hi, 0.92)}" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="2"/>`);
-      out.push(art(hx.terrain, cx, cy, hi));
-      out.push(`<title>${E.TERRAIN_NAME[hx.terrain]}${hx.num ? ' · ' + hx.num : ''}${E.TERRAIN_RES[hx.terrain] ? ' · produce ' + E.RES_NAME[E.TERRAIN_RES[hx.terrain]] : ''}</title>`);
+      out.push(`<g><title>${E.TERRAIN_NAME[hx.terrain]}${hx.num ? ' · ' + hx.num : ''}${E.TERRAIN_RES[hx.terrain] ? ' · produce ' + E.RES_NAME[E.TERRAIN_RES[hx.terrain]] : ''}</title>`);
+      out.push(`<polygon points="${hexPts(hi, 0.985)}" fill="${rim}" stroke="${shade(rim, -0.25)}" stroke-width="1.5" stroke-linejoin="round"/>`);
+      out.push(`<polygon points="${hexPts(hi, 0.9)}" fill="${face}" stroke="${hl}" stroke-width="3" stroke-linejoin="round"/>`);
+      out.push(art(hx.terrain, cx, cy));
       if (hx.num) {
         const hot = hx.num === 6 || hx.num === 8;
         const pips = 6 - Math.abs(7 - hx.num);
-        const ink = hot ? '#b8321f' : '#26231d';
-        out.push(`<g filter="url(#f-shadow)"><circle cx="${cx}" cy="${cy}" r="19" fill="url(#g-token)" stroke="#a89466" stroke-width="1.2"/></g>`);
-        out.push(`<text x="${cx}" y="${cy + 5}" text-anchor="middle" font-family="Figtree, sans-serif" font-weight="900" font-size="${hot ? 20 : 18}" fill="${ink}">${hx.num}</text>`);
-        for (let i = 0; i < pips; i++) out.push(`<circle cx="${(cx + (i - (pips - 1) / 2) * 4.2).toFixed(1)}" cy="${cy + 12}" r="1.5" fill="${ink}"/>`);
+        const ink = hot ? '#d0142c' : '#1f4a2a';
+        const ty = cy + 14;
+        out.push(`<g filter="url(#f-shadow)"><rect x="${cx - 17}" y="${ty - 16}" width="34" height="32" rx="6" fill="#f9f7f0" stroke="#d4ccb6" stroke-width="1.2"/></g>`);
+        out.push(`<text x="${cx}" y="${ty + 5}" text-anchor="middle" font-family="Figtree, sans-serif" font-weight="900" font-size="${hot ? 21 : 19}" fill="${ink}" stroke="${ink}" stroke-width=".6">${hx.num}</text>`);
+        for (let i = 0; i < pips; i++) out.push(`<circle cx="${(cx + (i - (pips - 1) / 2) * 4.4).toFixed(1)}" cy="${ty + 11}" r="1.6" fill="${ink}"/>`);
       }
+      out.push('</g>');
     });
     return out.join('');
   }
@@ -1129,9 +1249,9 @@ const Board = (() => {
     {
       const h = G.hexes[b.robber];
       const cx = h.x * S, cy = h.y * S;
-      out.push(`<polygon points="${hexPts(b.robber, 0.975)}" fill="rgba(4,10,14,.3)" pointer-events="none"/>`);
+      out.push(`<polygon points="${hexPts(b.robber, 0.9)}" fill="rgba(20,30,40,.28)" pointer-events="none"/>`);
       const rx = cx + 24, ry = cy - 4;
-      out.push(`<g pointer-events="none" filter="url(#f-shadow)"><ellipse cx="${rx}" cy="${ry + 19}" rx="11" ry="3.5" fill="rgba(0,0,0,.4)"/><path d="M${rx - 10} ${ry + 18}q-1 -14 5 -19q-4 -4 -2 -9q7 -6 14 0q2 5 -2 9q6 5 5 19z" fill="url(#g-stone)" stroke="#121318" stroke-width="1.4"/><ellipse cx="${rx - 2}" cy="${ry - 12}" rx="2.5" ry="1.5" fill="#fff" opacity=".35"/></g>`);
+      out.push(`<g pointer-events="none" filter="url(#f-shadow)"><ellipse cx="${rx}" cy="${ry + 19}" rx="11" ry="3.5" fill="rgba(0,0,0,.3)"/><path d="M${rx - 11} ${ry + 18}q0 -6 6 -8q-5 -5 -3 -12q3 -7 8 -7t8 7q2 7 -3 12q6 2 6 8z" fill="#9a9ea6" stroke="#55585f" stroke-width="1.4"/><circle cx="${rx}" cy="${ry - 14}" r="7" fill="#a9adb4" stroke="#55585f" stroke-width="1.4"/><ellipse cx="${rx - 2.5}" cy="${ry - 16.5}" rx="2.4" ry="1.6" fill="#fff" opacity=".55"/></g>`);
       out.push(`<title>Bandido: esta casilla no produce</title>`);
     }
     // roads
@@ -1195,7 +1315,7 @@ const Board = (() => {
     name: store.get('name', ''),
     joinCode: '',
     localNames: store.get('localNames', ['Ana', 'Beto', 'Carla']),
-    discard: {}, give: {}, get: {},
+    discard: {}, give: {}, get: {}, bidGive: {}, bidGet: {},
     tab: 'trade', tradeTab: 'bank', bankGive: 'wood', bankGet: 'brick',
     pick: null, plenty: [],
     toast: '', toastT: 0, lastDiceKey: '', closedOver: '',
@@ -1204,7 +1324,7 @@ const Board = (() => {
   const map = { full: false, min: false, z: 1, cx: 0, cy: 0 };
   const VB = { x: -300, y: -282, w: 600, h: 564 };
   const isPhone = () => window.matchMedia('(max-width: 900px)').matches;
-  const canPanZoom = () => map.full || !isPhone();
+  const canPanZoom = () => map.full || !isPhone() || map.z > 1;
 
   function clampView() {
     map.z = Math.min(4, Math.max(1, map.z));
@@ -1248,11 +1368,10 @@ const Board = (() => {
       pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (!start) return;
       if (Math.hypot(e.clientX - start.x, e.clientY - start.y) > 7) moved = true;
-      if (!canPanZoom()) return;
       if (pts.size >= 2 && pinch) {
         const [a, b] = [...pts.values()];
         setZoom(pinch.z * dist(a, b) / pinch.d);
-      } else if (pts.size === 1 && moved) {
+      } else if (pts.size === 1 && moved && canPanZoom()) {
         const k = unitsPerPx();
         map.cx = start.cx - (e.clientX - start.x) * k;
         map.cy = start.cy - (e.clientY - start.y) * k;
@@ -1270,12 +1389,19 @@ const Board = (() => {
     bw.addEventListener('click', (e) => {
       if (e.target.closest('button')) return;
       if (moved) { moved = false; e.stopPropagation(); e.preventDefault(); return; }
-      if (!map.full && isPhone()) { e.stopPropagation(); e.preventDefault(); openFull(); }
+      if (!map.full && isPhone() && map.z === 1) { e.stopPropagation(); e.preventDefault(); openFull(); }
     }, true);
     bw.addEventListener('wheel', (e) => {
       if (!canPanZoom()) return;
       e.preventDefault();
-      setZoom(map.z * (e.deltaY < 0 ? 1.15 : 1 / 1.15));
+      // Zoom toward the point under the cursor.
+      const r = document.getElementById('board').getBoundingClientRect();
+      const k = unitsPerPx(), z0 = map.z;
+      const ux = (e.clientX - (r.left + r.width / 2)) * k, uy = (e.clientY - (r.top + r.height / 2)) * k;
+      map.z = Math.min(4, Math.max(1, z0 * (e.deltaY < 0 ? 1.15 : 1 / 1.15)));
+      map.cx += ux * (1 - z0 / map.z);
+      map.cy += uy * (1 - z0 / map.z);
+      applyView();
     }, { passive: false });
   }
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && map.full) closeFull(); });
@@ -1439,6 +1565,7 @@ const Board = (() => {
     if (['road', 'settle', 'city'].includes(action.type)) ui.mode = null;
     if (action.type === 'discard') ui.discard = {};
     if (action.type === 'offer' || action.type === 'acceptOffer') { ui.give = {}; ui.get = {}; }
+    if (action.type === 'bid') { ui.bidGive = {}; ui.bidGet = {}; }
     if (action.type === 'playDev') { ui.pick = null; ui.plenty = []; }
   }
 
@@ -1621,7 +1748,7 @@ const Board = (() => {
     if (shown.screen !== screen) {
       $app.innerHTML = `<header class="topbar" id="top"></header>
         <main class="split">
-          <div class="board-wrap" id="bw"><svg id="board" viewBox="${B.VIEWBOX}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Mapa de la isla">${B.defs()}<g id="bs"></g><g id="bl"></g></svg><div class="hint" id="hint" hidden></div><div class="mapbtn" id="mapbtn"></div><div class="mapctl" id="mapctl"></div><div class="legend" id="legend"></div><div class="fullbar" id="fullbar"></div></div>
+          <div class="board-wrap" id="bw"><svg id="board" viewBox="${B.VIEWBOX}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Mapa de la isla">${B.defs()}<g id="bs"></g><g id="bl"></g></svg><div class="hint" id="hint" hidden></div><div class="mapbtn" id="mapbtn"></div><div class="mapctl" id="mapctl"></div><div class="legend" id="legend"></div><div class="mapdice" id="mapdice"></div><div class="fullbar" id="fullbar"></div></div>
           <aside class="side" id="side"></aside>
         </main><div id="over"></div><div id="toast"></div>`;
       shown = { screen, boardKey: null };
@@ -1645,9 +1772,11 @@ const Board = (() => {
     const zoomBtns = `<button class="btn icon" data-act="zoomOut" aria-label="Alejar">${I('M5 12h14')}</button><button class="btn icon" data-act="zoomIn" aria-label="Acercar">${I('M12 5v14M5 12h14')}</button><button class="btn icon" data-act="zoomReset" aria-label="Ver todo el mapa">${I('M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5')}</button>`;
     let ctl = '';
     if (map.full) ctl = `${zoomBtns}<button class="btn primary" data-act="closeMap">${I('M6 6l12 12M18 6L6 18')} Cerrar mapa</button>`;
-    else if (isPhone()) ctl = `<button class="btn" data-act="openMap">${I('M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5')} Ampliar</button><button class="btn" data-act="toggleMin">${map.min ? I('M6 15l6-6 6 6') + ' Ver mapa' : I('M6 9l6 6 6-6') + ' Minimizar'}</button>`;
+    else if (isPhone()) ctl = `${map.min ? '' : zoomBtns}<button class="btn" data-act="openMap">${I('M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5')} Ampliar</button><button class="btn" data-act="toggleMin">${map.min ? I('M6 15l6-6 6 6') + ' Ver mapa' : I('M6 9l6 6 6-6') + ' Minimizar'}</button>`;
     else ctl = `${zoomBtns}<button class="btn" data-act="openMap">${I('M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5')} Pantalla completa</button>`;
     document.getElementById('mapctl').innerHTML = ctl;
+    document.getElementById('legend').hidden = screen === 'game';
+    document.getElementById('mapdice').innerHTML = screen === 'game' && s.lastRoll && s.phase === 'main' ? die(s.lastRoll.d[0], false) + die(s.lastRoll.d[1], false) : '';
     document.getElementById('fullbar').innerHTML = map.full && session && screen === 'game' ? fullBar(s, vi) : '';
     applyView();
     const hint = document.getElementById('hint');
@@ -1691,7 +1820,7 @@ const Board = (() => {
       <li><b>Producción:</b> al tirar, las casillas con ese número dan 1 carta a cada poblado y 2 a cada ciudad que las toquen.</li>
       <li><b>El 7:</b> nadie produce. Si tienes más de 7 cartas, descartas la mitad. Quien tiró mueve al bandido y roba 1 carta a un vecino de esa casilla.</li>
       <li><b>Costos:</b> camino = Madera + Arcilla · poblado = Madera + Arcilla + Lana + Trigo · ciudad = 2 Trigo + 3 Mineral · carta = Lana + Trigo + Mineral.</li>
-      <li><b>Comercio:</b> en tu turno, con otros jugadores o con el banco a 4:1. Los puertos mejoran la tasa a 3:1 o 2:1.</li>
+      <li><b>Comercio:</b> en tu turno, con otros jugadores o con el banco a 4:1. Los puertos mejoran la tasa a 3:1 o 2:1. Fuera de tu turno puedes proponer cambios solo al jugador en turno.</li>
       <li><b>Cartas:</b> 14 Guardianes, 5 Monumentos, 2 Constructores, 2 Cosechas, 2 Monopolios. Una por turno y no el mismo turno que la compras.</li>
       <li><b>Camino más largo:</b> 5 tramos seguidos o más. <b>Guardia mayor:</b> 3 Guardianes o más. Si alguien te supera, te lo quita.</li>
     </ul>`;
@@ -1818,6 +1947,7 @@ const Board = (() => {
 
     // Offer to respond to
     if (main && s.trade && me && !isCur) parts.push(offerForMe(s, vi));
+    if (main && isCur && Object.keys(s.bids || {}).length) parts.push(bidsForMe(s, vi));
 
     // Hand + build
     if (me) {
@@ -1837,14 +1967,14 @@ const Board = (() => {
     // Tabs
     const devN = me ? me.dev.length : 0;
     const canTrade = main && isCur && step === 'main';
-    const tabs = [['trade', 'Comercio', canTrade && s.trade], ['dev', `Cartas${devN ? ' (' + devN + ')' : ''}`, false], ['log', 'Bitácora', false], ['rules', 'Reglas', false]];
+    const tabs = [['trade', 'Comercio', (canTrade && s.trade) || (isCur && Object.keys(s.bids || {}).length)], ['dev', `Cartas${devN ? ' (' + devN + ')' : ''}`, false], ['log', 'Bitácora', false], ['rules', 'Reglas', false]];
     let tabBody = '';
     if (ui.tab === 'trade') tabBody = me ? tradeUI(s, vi) : '<p class="note">Solo los jugadores pueden comerciar.</p>';
     if (ui.tab === 'dev') tabBody = me ? devUI(s, vi) : '';
     if (ui.tab === 'log') tabBody = `<div class="log" id="log">${s.log.slice(-40).map((l) => `<div>${esc(l)}</div>`).join('')}</div>`;
     if (ui.tab === 'rules') tabBody = rulesList();
     parts.push(`<section class="card"><div class="tabs" role="tablist">${tabs.map(([k, l, dot]) => `<button role="tab" aria-selected="${ui.tab === k}" class="${ui.tab === k ? 'on' : ''}" data-act="tab" data-t="${k}">${l}${dot ? '<span class="dotn"></span>' : ''}</button>`).join('')}</div>${tabBody}</section>`);
-    parts.push(`<p class="note">Banco: ${RES.map((r) => `${E.RES_NAME[r]} ${s.bank[r]}`).join(' · ')} · Cartas de desarrollo ${s.deck.length}</p>`);
+    parts.push(`<section class="card"><div class="label"><span>Banco</span><span>quedan</span></div><div class="bankrow">${RES.map((r) => `<div class="rcard r-${r}" title="${E.RES_NAME[r]}">${B.resIcon(r, 18)}<span class="n">${s.bank[r]}</span></div>`).join('')}<div class="rcard devc" title="Cartas de desarrollo">${B.resIcon('any', 18)}<span class="n">${s.deck.length}</span></div></div></section>`);
     return parts.join('');
   }
 
@@ -1893,14 +2023,40 @@ const Board = (() => {
     const r = t.resp[vi];
     return `<section class="card turncard mine"><div class="label">Oferta de ${esc(from.name)}</div>
       <div class="offer"><div class="line"><b>Te da</b> ${miniRes(t.give)}</div><div class="line"><b>Te pide</b> ${miniRes(t.get)}</div>
-      ${r === undefined ? `<div class="row"><button class="btn primary" data-act="respond" data-yes="1" ${E.hasRes(p, t.get) ? '' : 'disabled'}>Aceptar</button><button class="btn" data-act="respond" data-yes="0">Rechazar</button></div>${E.hasRes(p, t.get) ? '' : '<p class="note">No tienes lo que pide.</p>'}` : `<p class="note">Respondiste: ${r ? 'acepto. Esperando su decisión.' : 'no.'}</p>`}</div></section>`;
+      ${r === undefined ? `<div class="row"><button class="btn primary" data-act="respond" data-yes="1" ${E.hasRes(p, t.get) ? '' : 'disabled'}>Aceptar</button><button class="btn" data-act="respond" data-yes="0">Rechazar</button><button class="btn ghost" data-act="counter">Contraoferta</button></div>${E.hasRes(p, t.get) ? '' : '<p class="note">No tienes lo que pide.</p>'}` : `<p class="note">Respondiste: ${r ? 'acepto. Esperando su decisión.' : 'no.'}</p>`}</div></section>`;
+  }
+
+  function bidsForMe(s, vi) {
+    const me = s.players[vi];
+    const rows = Object.entries(s.bids).map(([o, b]) => {
+      const other = s.players[o];
+      const can = E.hasRes(me, b.get) && !busy && s.turn.step === 'main';
+      return `<div class="offer"><div class="line">${avatar(other, 26)}<b>${esc(other.name)} te propone</b></div>
+        <div class="line"><b>Te da</b> ${miniRes(b.give)}</div><div class="line"><b>Te pide</b> ${miniRes(b.get)}</div>
+        <div class="row"><button class="btn primary" data-act="acceptBid" data-t="${o}" ${can ? '' : 'disabled'}>Aceptar</button><button class="btn" data-act="rejectBid" data-t="${o}" ${busy ? 'disabled' : ''}>Rechazar</button></div>
+        ${E.hasRes(me, b.get) ? '' : '<p class="note">No tienes lo que te pide.</p>'}</div>`;
+    }).join('');
+    return `<section class="card turncard mine"><div class="label">Propuestas para ti</div>${rows}</section>`;
+  }
+
+  // Players who are not in turn can propose a trade, but only to the player in turn.
+  function bidUI(s, vi) {
+    const p = s.players[vi];
+    const cur = s.players[s.turn.cur];
+    const mine = s.bids && s.bids[vi];
+    if (s.turn.step !== 'main') return `<p class="note">Cuando ${esc(cur.name)} tire los dados podrás proponerle un cambio.</p>`;
+    const open = mine ? `<div class="offer"><div class="label">Tu propuesta a ${esc(cur.name)}</div><div class="line"><b>Das</b> ${miniRes(mine.give)}</div><div class="line"><b>Pides</b> ${miniRes(mine.get)}</div><p class="note">Esperando su respuesta.</p><button class="btn small ghost" data-act="withdrawBid" ${busy ? 'disabled' : ''}>Retirar propuesta</button></div>` : '';
+    return `${open}<p class="note">Fuera de tu turno solo puedes proponer cambios a ${esc(cur.name)}, que está en turno.${mine ? ' Si envías otra, reemplaza a la anterior.' : ''}</p>
+      <div class="label">Te doy</div>${stepperGrid('bgive', ui.bidGive, p.res)}<div class="label">Te pido</div>${stepperGrid('bget', ui.bidGet, null)}
+      <button class="btn primary" data-act="bidGo" ${E.total(ui.bidGive) && E.total(ui.bidGet) && E.hasRes(p, ui.bidGive) && !RES.some((r) => ui.bidGive[r] && ui.bidGet[r]) && !busy ? '' : 'disabled'}>Proponer a ${esc(cur.name)}</button>`;
   }
 
   function tradeUI(s, vi) {
     const p = s.players[vi];
     const isCur = s.turn.cur === vi;
     const t = s.trade;
-    if (!(s.phase === 'main' && isCur && s.turn.step === 'main')) return `<p class="note">Puedes comerciar en tu turno, después de tirar los dados.${t && !isCur ? ' Responde a la oferta de arriba.' : ''}</p>`;
+    if (s.phase === 'main' && !isCur) return bidUI(s, vi);
+    if (!(s.phase === 'main' && isCur && s.turn.step === 'main')) return `<p class="note">Puedes comerciar en tu turno, después de tirar los dados.</p>`;
     if (t) {
       const rows = s.players.map((o, i) => {
         if (i === vi) return '';
@@ -2043,6 +2199,13 @@ const Board = (() => {
       case 'respond': commit({ type: 'respond', accept: d.yes === '1', as: d.as !== undefined ? +d.as : undefined }); break;
       case 'acceptOffer': commit({ type: 'acceptOffer', target: +d.t }); break;
       case 'cancelOffer': commit({ type: 'cancelOffer' }); break;
+      case 'bgive': adjust(ui.bidGive, d.r, +d.d, s.players[vi].res); break;
+      case 'bget': adjust(ui.bidGet, d.r, +d.d, null); break;
+      case 'bidGo': commit({ type: 'bid', give: ui.bidGive, get: ui.bidGet }); break;
+      case 'withdrawBid': commit({ type: 'withdrawBid' }); break;
+      case 'acceptBid': commit({ type: 'acceptBid', target: +d.t }); break;
+      case 'rejectBid': commit({ type: 'rejectBid', target: +d.t }); break;
+      case 'counter': ui.bidGive = { ...s.trade.get }; ui.bidGet = { ...s.trade.give }; ui.tab = 'trade'; render(); break;
       case 'closeOver': ui.closedOver = session.code + s.turnNo; render(); break;
     }
   });

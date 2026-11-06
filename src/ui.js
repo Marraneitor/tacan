@@ -24,7 +24,7 @@
     name: store.get('name', ''),
     joinCode: '',
     localNames: store.get('localNames', ['Ana', 'Beto', 'Carla']),
-    discard: {}, give: {}, get: {},
+    discard: {}, give: {}, get: {}, bidGive: {}, bidGet: {},
     tab: 'trade', tradeTab: 'bank', bankGive: 'wood', bankGet: 'brick',
     pick: null, plenty: [],
     toast: '', toastT: 0, lastDiceKey: '', closedOver: '',
@@ -33,7 +33,7 @@
   const map = { full: false, min: false, z: 1, cx: 0, cy: 0 };
   const VB = { x: -300, y: -282, w: 600, h: 564 };
   const isPhone = () => window.matchMedia('(max-width: 900px)').matches;
-  const canPanZoom = () => map.full || !isPhone();
+  const canPanZoom = () => map.full || !isPhone() || map.z > 1;
 
   function clampView() {
     map.z = Math.min(4, Math.max(1, map.z));
@@ -77,11 +77,10 @@
       pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (!start) return;
       if (Math.hypot(e.clientX - start.x, e.clientY - start.y) > 7) moved = true;
-      if (!canPanZoom()) return;
       if (pts.size >= 2 && pinch) {
         const [a, b] = [...pts.values()];
         setZoom(pinch.z * dist(a, b) / pinch.d);
-      } else if (pts.size === 1 && moved) {
+      } else if (pts.size === 1 && moved && canPanZoom()) {
         const k = unitsPerPx();
         map.cx = start.cx - (e.clientX - start.x) * k;
         map.cy = start.cy - (e.clientY - start.y) * k;
@@ -99,12 +98,19 @@
     bw.addEventListener('click', (e) => {
       if (e.target.closest('button')) return;
       if (moved) { moved = false; e.stopPropagation(); e.preventDefault(); return; }
-      if (!map.full && isPhone()) { e.stopPropagation(); e.preventDefault(); openFull(); }
+      if (!map.full && isPhone() && map.z === 1) { e.stopPropagation(); e.preventDefault(); openFull(); }
     }, true);
     bw.addEventListener('wheel', (e) => {
       if (!canPanZoom()) return;
       e.preventDefault();
-      setZoom(map.z * (e.deltaY < 0 ? 1.15 : 1 / 1.15));
+      // Zoom toward the point under the cursor.
+      const r = document.getElementById('board').getBoundingClientRect();
+      const k = unitsPerPx(), z0 = map.z;
+      const ux = (e.clientX - (r.left + r.width / 2)) * k, uy = (e.clientY - (r.top + r.height / 2)) * k;
+      map.z = Math.min(4, Math.max(1, z0 * (e.deltaY < 0 ? 1.15 : 1 / 1.15)));
+      map.cx += ux * (1 - z0 / map.z);
+      map.cy += uy * (1 - z0 / map.z);
+      applyView();
     }, { passive: false });
   }
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && map.full) closeFull(); });
@@ -268,6 +274,7 @@
     if (['road', 'settle', 'city'].includes(action.type)) ui.mode = null;
     if (action.type === 'discard') ui.discard = {};
     if (action.type === 'offer' || action.type === 'acceptOffer') { ui.give = {}; ui.get = {}; }
+    if (action.type === 'bid') { ui.bidGive = {}; ui.bidGet = {}; }
     if (action.type === 'playDev') { ui.pick = null; ui.plenty = []; }
   }
 
@@ -450,7 +457,7 @@
     if (shown.screen !== screen) {
       $app.innerHTML = `<header class="topbar" id="top"></header>
         <main class="split">
-          <div class="board-wrap" id="bw"><svg id="board" viewBox="${B.VIEWBOX}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Mapa de la isla">${B.defs()}<g id="bs"></g><g id="bl"></g></svg><div class="hint" id="hint" hidden></div><div class="mapbtn" id="mapbtn"></div><div class="mapctl" id="mapctl"></div><div class="legend" id="legend"></div><div class="fullbar" id="fullbar"></div></div>
+          <div class="board-wrap" id="bw"><svg id="board" viewBox="${B.VIEWBOX}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Mapa de la isla">${B.defs()}<g id="bs"></g><g id="bl"></g></svg><div class="hint" id="hint" hidden></div><div class="mapbtn" id="mapbtn"></div><div class="mapctl" id="mapctl"></div><div class="legend" id="legend"></div><div class="mapdice" id="mapdice"></div><div class="fullbar" id="fullbar"></div></div>
           <aside class="side" id="side"></aside>
         </main><div id="over"></div><div id="toast"></div>`;
       shown = { screen, boardKey: null };
@@ -474,9 +481,11 @@
     const zoomBtns = `<button class="btn icon" data-act="zoomOut" aria-label="Alejar">${I('M5 12h14')}</button><button class="btn icon" data-act="zoomIn" aria-label="Acercar">${I('M12 5v14M5 12h14')}</button><button class="btn icon" data-act="zoomReset" aria-label="Ver todo el mapa">${I('M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5')}</button>`;
     let ctl = '';
     if (map.full) ctl = `${zoomBtns}<button class="btn primary" data-act="closeMap">${I('M6 6l12 12M18 6L6 18')} Cerrar mapa</button>`;
-    else if (isPhone()) ctl = `<button class="btn" data-act="openMap">${I('M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5')} Ampliar</button><button class="btn" data-act="toggleMin">${map.min ? I('M6 15l6-6 6 6') + ' Ver mapa' : I('M6 9l6 6 6-6') + ' Minimizar'}</button>`;
+    else if (isPhone()) ctl = `${map.min ? '' : zoomBtns}<button class="btn" data-act="openMap">${I('M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5')} Ampliar</button><button class="btn" data-act="toggleMin">${map.min ? I('M6 15l6-6 6 6') + ' Ver mapa' : I('M6 9l6 6 6-6') + ' Minimizar'}</button>`;
     else ctl = `${zoomBtns}<button class="btn" data-act="openMap">${I('M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5')} Pantalla completa</button>`;
     document.getElementById('mapctl').innerHTML = ctl;
+    document.getElementById('legend').hidden = screen === 'game';
+    document.getElementById('mapdice').innerHTML = screen === 'game' && s.lastRoll && s.phase === 'main' ? die(s.lastRoll.d[0], false) + die(s.lastRoll.d[1], false) : '';
     document.getElementById('fullbar').innerHTML = map.full && session && screen === 'game' ? fullBar(s, vi) : '';
     applyView();
     const hint = document.getElementById('hint');
@@ -520,7 +529,7 @@
       <li><b>Producción:</b> al tirar, las casillas con ese número dan 1 carta a cada poblado y 2 a cada ciudad que las toquen.</li>
       <li><b>El 7:</b> nadie produce. Si tienes más de 7 cartas, descartas la mitad. Quien tiró mueve al bandido y roba 1 carta a un vecino de esa casilla.</li>
       <li><b>Costos:</b> camino = Madera + Arcilla · poblado = Madera + Arcilla + Lana + Trigo · ciudad = 2 Trigo + 3 Mineral · carta = Lana + Trigo + Mineral.</li>
-      <li><b>Comercio:</b> en tu turno, con otros jugadores o con el banco a 4:1. Los puertos mejoran la tasa a 3:1 o 2:1.</li>
+      <li><b>Comercio:</b> en tu turno, con otros jugadores o con el banco a 4:1. Los puertos mejoran la tasa a 3:1 o 2:1. Fuera de tu turno puedes proponer cambios solo al jugador en turno.</li>
       <li><b>Cartas:</b> 14 Guardianes, 5 Monumentos, 2 Constructores, 2 Cosechas, 2 Monopolios. Una por turno y no el mismo turno que la compras.</li>
       <li><b>Camino más largo:</b> 5 tramos seguidos o más. <b>Guardia mayor:</b> 3 Guardianes o más. Si alguien te supera, te lo quita.</li>
     </ul>`;
@@ -647,6 +656,7 @@
 
     // Offer to respond to
     if (main && s.trade && me && !isCur) parts.push(offerForMe(s, vi));
+    if (main && isCur && Object.keys(s.bids || {}).length) parts.push(bidsForMe(s, vi));
 
     // Hand + build
     if (me) {
@@ -666,14 +676,14 @@
     // Tabs
     const devN = me ? me.dev.length : 0;
     const canTrade = main && isCur && step === 'main';
-    const tabs = [['trade', 'Comercio', canTrade && s.trade], ['dev', `Cartas${devN ? ' (' + devN + ')' : ''}`, false], ['log', 'Bitácora', false], ['rules', 'Reglas', false]];
+    const tabs = [['trade', 'Comercio', (canTrade && s.trade) || (isCur && Object.keys(s.bids || {}).length)], ['dev', `Cartas${devN ? ' (' + devN + ')' : ''}`, false], ['log', 'Bitácora', false], ['rules', 'Reglas', false]];
     let tabBody = '';
     if (ui.tab === 'trade') tabBody = me ? tradeUI(s, vi) : '<p class="note">Solo los jugadores pueden comerciar.</p>';
     if (ui.tab === 'dev') tabBody = me ? devUI(s, vi) : '';
     if (ui.tab === 'log') tabBody = `<div class="log" id="log">${s.log.slice(-40).map((l) => `<div>${esc(l)}</div>`).join('')}</div>`;
     if (ui.tab === 'rules') tabBody = rulesList();
     parts.push(`<section class="card"><div class="tabs" role="tablist">${tabs.map(([k, l, dot]) => `<button role="tab" aria-selected="${ui.tab === k}" class="${ui.tab === k ? 'on' : ''}" data-act="tab" data-t="${k}">${l}${dot ? '<span class="dotn"></span>' : ''}</button>`).join('')}</div>${tabBody}</section>`);
-    parts.push(`<p class="note">Banco: ${RES.map((r) => `${E.RES_NAME[r]} ${s.bank[r]}`).join(' · ')} · Cartas de desarrollo ${s.deck.length}</p>`);
+    parts.push(`<section class="card"><div class="label"><span>Banco</span><span>quedan</span></div><div class="bankrow">${RES.map((r) => `<div class="rcard r-${r}" title="${E.RES_NAME[r]}">${B.resIcon(r, 18)}<span class="n">${s.bank[r]}</span></div>`).join('')}<div class="rcard devc" title="Cartas de desarrollo">${B.resIcon('any', 18)}<span class="n">${s.deck.length}</span></div></div></section>`);
     return parts.join('');
   }
 
@@ -722,14 +732,40 @@
     const r = t.resp[vi];
     return `<section class="card turncard mine"><div class="label">Oferta de ${esc(from.name)}</div>
       <div class="offer"><div class="line"><b>Te da</b> ${miniRes(t.give)}</div><div class="line"><b>Te pide</b> ${miniRes(t.get)}</div>
-      ${r === undefined ? `<div class="row"><button class="btn primary" data-act="respond" data-yes="1" ${E.hasRes(p, t.get) ? '' : 'disabled'}>Aceptar</button><button class="btn" data-act="respond" data-yes="0">Rechazar</button></div>${E.hasRes(p, t.get) ? '' : '<p class="note">No tienes lo que pide.</p>'}` : `<p class="note">Respondiste: ${r ? 'acepto. Esperando su decisión.' : 'no.'}</p>`}</div></section>`;
+      ${r === undefined ? `<div class="row"><button class="btn primary" data-act="respond" data-yes="1" ${E.hasRes(p, t.get) ? '' : 'disabled'}>Aceptar</button><button class="btn" data-act="respond" data-yes="0">Rechazar</button><button class="btn ghost" data-act="counter">Contraoferta</button></div>${E.hasRes(p, t.get) ? '' : '<p class="note">No tienes lo que pide.</p>'}` : `<p class="note">Respondiste: ${r ? 'acepto. Esperando su decisión.' : 'no.'}</p>`}</div></section>`;
+  }
+
+  function bidsForMe(s, vi) {
+    const me = s.players[vi];
+    const rows = Object.entries(s.bids).map(([o, b]) => {
+      const other = s.players[o];
+      const can = E.hasRes(me, b.get) && !busy && s.turn.step === 'main';
+      return `<div class="offer"><div class="line">${avatar(other, 26)}<b>${esc(other.name)} te propone</b></div>
+        <div class="line"><b>Te da</b> ${miniRes(b.give)}</div><div class="line"><b>Te pide</b> ${miniRes(b.get)}</div>
+        <div class="row"><button class="btn primary" data-act="acceptBid" data-t="${o}" ${can ? '' : 'disabled'}>Aceptar</button><button class="btn" data-act="rejectBid" data-t="${o}" ${busy ? 'disabled' : ''}>Rechazar</button></div>
+        ${E.hasRes(me, b.get) ? '' : '<p class="note">No tienes lo que te pide.</p>'}</div>`;
+    }).join('');
+    return `<section class="card turncard mine"><div class="label">Propuestas para ti</div>${rows}</section>`;
+  }
+
+  // Players who are not in turn can propose a trade, but only to the player in turn.
+  function bidUI(s, vi) {
+    const p = s.players[vi];
+    const cur = s.players[s.turn.cur];
+    const mine = s.bids && s.bids[vi];
+    if (s.turn.step !== 'main') return `<p class="note">Cuando ${esc(cur.name)} tire los dados podrás proponerle un cambio.</p>`;
+    const open = mine ? `<div class="offer"><div class="label">Tu propuesta a ${esc(cur.name)}</div><div class="line"><b>Das</b> ${miniRes(mine.give)}</div><div class="line"><b>Pides</b> ${miniRes(mine.get)}</div><p class="note">Esperando su respuesta.</p><button class="btn small ghost" data-act="withdrawBid" ${busy ? 'disabled' : ''}>Retirar propuesta</button></div>` : '';
+    return `${open}<p class="note">Fuera de tu turno solo puedes proponer cambios a ${esc(cur.name)}, que está en turno.${mine ? ' Si envías otra, reemplaza a la anterior.' : ''}</p>
+      <div class="label">Te doy</div>${stepperGrid('bgive', ui.bidGive, p.res)}<div class="label">Te pido</div>${stepperGrid('bget', ui.bidGet, null)}
+      <button class="btn primary" data-act="bidGo" ${E.total(ui.bidGive) && E.total(ui.bidGet) && E.hasRes(p, ui.bidGive) && !RES.some((r) => ui.bidGive[r] && ui.bidGet[r]) && !busy ? '' : 'disabled'}>Proponer a ${esc(cur.name)}</button>`;
   }
 
   function tradeUI(s, vi) {
     const p = s.players[vi];
     const isCur = s.turn.cur === vi;
     const t = s.trade;
-    if (!(s.phase === 'main' && isCur && s.turn.step === 'main')) return `<p class="note">Puedes comerciar en tu turno, después de tirar los dados.${t && !isCur ? ' Responde a la oferta de arriba.' : ''}</p>`;
+    if (s.phase === 'main' && !isCur) return bidUI(s, vi);
+    if (!(s.phase === 'main' && isCur && s.turn.step === 'main')) return `<p class="note">Puedes comerciar en tu turno, después de tirar los dados.</p>`;
     if (t) {
       const rows = s.players.map((o, i) => {
         if (i === vi) return '';
@@ -872,6 +908,13 @@
       case 'respond': commit({ type: 'respond', accept: d.yes === '1', as: d.as !== undefined ? +d.as : undefined }); break;
       case 'acceptOffer': commit({ type: 'acceptOffer', target: +d.t }); break;
       case 'cancelOffer': commit({ type: 'cancelOffer' }); break;
+      case 'bgive': adjust(ui.bidGive, d.r, +d.d, s.players[vi].res); break;
+      case 'bget': adjust(ui.bidGet, d.r, +d.d, null); break;
+      case 'bidGo': commit({ type: 'bid', give: ui.bidGive, get: ui.bidGet }); break;
+      case 'withdrawBid': commit({ type: 'withdrawBid' }); break;
+      case 'acceptBid': commit({ type: 'acceptBid', target: +d.t }); break;
+      case 'rejectBid': commit({ type: 'rejectBid', target: +d.t }); break;
+      case 'counter': ui.bidGive = { ...s.trade.get }; ui.bidGet = { ...s.trade.give }; ui.tab = 'trade'; render(); break;
       case 'closeOver': ui.closedOver = session.code + s.turnNo; render(); break;
     }
   });
