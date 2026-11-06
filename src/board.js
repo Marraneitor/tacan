@@ -182,17 +182,18 @@ const Board = (() => {
     Object.entries(s.roads).forEach(([e, o]) => {
       const ed = G.edges[e], va = G.vertices[ed.a], vb = G.vertices[ed.b];
       const x1 = va.x * S, y1 = va.y * S, x2 = vb.x * S, y2 = vb.y * S;
-      const sx = x1 + (x2 - x1) * 0.17, sy = y1 + (y2 - y1) * 0.17, ex = x1 + (x2 - x1) * 0.83, ey = y1 + (y2 - y1) * 0.83;
+      const sx = x1 + (x2 - x1) * 0.15, sy = y1 + (y2 - y1) * 0.15, ex = x1 + (x2 - x1) * 0.85, ey = y1 + (y2 - y1) * 0.85;
       const c = colorOf(o);
-      out.push(`<line x1="${sx}" y1="${sy + 2}" x2="${ex}" y2="${ey + 2}" stroke="rgba(0,0,0,.4)" stroke-width="11" stroke-linecap="round"/>`);
-      out.push(`<line x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}" stroke="#0b1418" stroke-width="11" stroke-linecap="round"/>`);
-      out.push(`<line x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}" stroke="${shade(c, -0.25)}" stroke-width="8" stroke-linecap="round"/>`);
-      out.push(`<line x1="${sx}" y1="${sy - 1.5}" x2="${ex}" y2="${ey - 1.5}" stroke="${c}" stroke-width="4" stroke-linecap="round"/>`);
+      out.push(`<line x1="${sx}" y1="${sy + 2}" x2="${ex}" y2="${ey + 2}" stroke="rgba(0,0,0,.4)" stroke-width="16" stroke-linecap="round"/>`);
+      out.push(`<line x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}" stroke="#0b1418" stroke-width="16" stroke-linecap="round"/>`);
+      out.push(`<line x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}" stroke="${shade(c, -0.25)}" stroke-width="12" stroke-linecap="round"/>`);
+      out.push(`<line x1="${sx}" y1="${sy - 2}" x2="${ex}" y2="${ey - 2}" stroke="${c}" stroke-width="6" stroke-linecap="round"/>`);
     });
     // buildings
     Object.entries(s.buildings).forEach(([v, bd]) => {
       const x = G.vertices[v].x * S, y = G.vertices[v].y * S;
-      out.push(bd.t === 's' ? settlementShape(x, y, colorOf(bd.o)) : cityShape(x, y, colorOf(bd.o)));
+      // Pieces are drawn bigger than the toolbar icons so they read well on the map.
+      out.push(`<g transform="translate(${x} ${y}) scale(1.6)">${bd.t === 's' ? settlementShape(0, 0, colorOf(bd.o)) : cityShape(0, 0, colorOf(bd.o))}</g>`);
     });
     // targets
     t.hexes.forEach((hi) => out.push(`<polygon class="hex-target" data-act="hex" data-h="${hi}" points="${hexPts(hi, 0.95)}"><title>Mover el bandido aquí</title></polygon>`));
@@ -203,7 +204,7 @@ const Board = (() => {
       out.push(`<line class="edge-glow" x1="${x1 + (x2 - x1) * 0.2}" y1="${y1 + (y2 - y1) * 0.2}" x2="${x1 + (x2 - x1) * 0.8}" y2="${y1 + (y2 - y1) * 0.8}"/>`);
     });
     t.verts.forEach((v) => out.push(`<g class="spot" data-act="vert" data-v="${v}"><circle class="ring" cx="${G.vertices[v].x * S}" cy="${G.vertices[v].y * S}" r="11"/><circle cx="${G.vertices[v].x * S}" cy="${G.vertices[v].y * S}" r="18" fill="transparent"/><title>Construir poblado aquí</title></g>`));
-    t.cities.forEach((v) => out.push(`<circle class="city-target" data-act="cityv" data-v="${v}" cx="${G.vertices[v].x * S}" cy="${G.vertices[v].y * S}" r="18"><title>Mejorar a ciudad</title></circle>`));
+    t.cities.forEach((v) => out.push(`<circle class="city-target" data-act="cityv" data-v="${v}" cx="${G.vertices[v].x * S}" cy="${G.vertices[v].y * S}" r="24"><title>Mejorar a ciudad</title></circle>`));
     return out.join('');
   }
 

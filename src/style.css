@@ -257,3 +257,66 @@ body.map-open { overflow: hidden; }
 @media (max-width: 900px) { .mapdice { display: none; } }
 .topbar .btn.ghost { color: #fff; border-color: rgba(255, 255, 255, .55); }
 .topbar .btn.ghost:hover:not(:disabled) { background: rgba(255, 255, 255, .15); border-color: #fff; }
+
+/* Resource legend lives in the top bar, out of the map's way */
+.topbar-l { display: contents; }
+.topbar .brand { order: 0; }
+.topbar .legend { order: 1; position: static; max-width: none; flex-wrap: nowrap; gap: 5px; margin-left: 8px; }
+.topbar .spacer { order: 2; }
+.topbar .chip, .topbar .btn { order: 3; }
+.topbar .legend span { font-size: 12px; padding: 2px 8px 2px 4px; background: rgba(255, 255, 255, .92); }
+@media (max-width: 1180px) { .topbar .legend { display: none; } }
+
+/* Laptops with short screens (e.g. 1366x768 or 1360x720): tighter type and spacing so map and panel both fit */
+@media (max-height: 820px) and (min-width: 901px), (max-width: 1440px) and (min-width: 901px) {
+  body { font-size: 14px; }
+  .topbar { padding-block: 6px; gap: 8px; }
+  .brand h1 { font-size: 20px; }
+  .brand-mark { width: 24px; height: 24px; }
+  .split { grid-template-columns: minmax(0, 1fr) 340px; gap: 12px; padding-bottom: 10px; }
+  .side { gap: 8px; }
+  .card { padding: 11px 12px; gap: 8px; border-radius: 13px; }
+  .card h3 { font-size: 17px; }
+  .label { font-size: 11px; }
+  .instr { font-size: 19px; }
+  .instr-sub { font-size: 13px; margin-top: 2px; }
+  .whose { font-size: 13px; }
+  .btn { padding: 7px 12px; border-radius: 10px; }
+  .btn.big { padding: 9px 12px; font-size: 16px; border-radius: 12px; }
+  .btn.small { padding: 5px 9px; font-size: 13px; }
+  input[type=text], select { padding: 7px 10px; border-radius: 10px; }
+  .prow { grid-template-columns: 28px minmax(0, 1fr) auto; gap: 8px; padding: 5px 8px; border-radius: 10px; }
+  .avatar { width: 28px !important; height: 28px !important; font-size: 13px; }
+  .pname { font-size: 14px; }
+  .pmeta { font-size: 12px; gap: 8px; }
+  .pvp { font-size: 21px; }
+  .pvp small { font-size: 10px; }
+  .die { width: 34px; height: 34px; padding: 5px; border-radius: 8px; }
+  .die i { width: 6px; height: 6px; }
+  .dice-sum { font-size: 24px; }
+  .hand { gap: 6px; }
+  .rcard { padding: 6px 2px 5px; border-radius: 10px; }
+  .rcard .n { font-size: 19px; }
+  .rcard .l { font-size: 9.5px; }
+  .rcard svg { width: 20px; height: 20px; }
+  .build { gap: 6px; }
+  .bbtn { grid-template-columns: 28px minmax(0, 1fr); gap: 2px 8px; padding: 7px 8px; border-radius: 10px; }
+  .bico { width: 28px; height: 28px; }
+  .bname { font-size: 13px; }
+  .why { font-size: 11px; }
+  .tabs button { padding: 6px 4px; font-size: 13px; }
+  .trade-grid { gap: 4px; }
+  .trade-grid .rcard .n { font-size: 16px; }
+  .stepper button { width: 24px; height: 24px; font-size: 14px; }
+  .offer { padding: 9px; gap: 7px; }
+  .li, .dev { padding: 7px 8px; }
+  .log { max-height: 180px; font-size: 13px; }
+  .rules { font-size: 13px; gap: 5px; }
+  .hero h2 { font-size: 24px; }
+  .hint { font-size: 13px; padding: 6px 12px; top: 10px; }
+  .mapctl .btn { padding: 6px 10px; font-size: 13px; }
+  .btn.icon { width: 34px; height: 34px; padding: 6px; }
+  .mapdice .die { width: 42px; height: 42px; padding: 6px; }
+  .mapdice .die i { width: 7px; height: 7px; }
+  .board-wrap { border-radius: 16px; }
+}

@@ -455,9 +455,9 @@
   function render() {
     const screen = screenOf();
     if (shown.screen !== screen) {
-      $app.innerHTML = `<header class="topbar" id="top"></header>
+      $app.innerHTML = `<header class="topbar"><div class="topbar-l" id="top"></div><div class="legend" id="legend"></div></header>
         <main class="split">
-          <div class="board-wrap" id="bw"><svg id="board" viewBox="${B.VIEWBOX}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Mapa de la isla">${B.defs()}<g id="bs"></g><g id="bl"></g></svg><div class="hint" id="hint" hidden></div><div class="mapbtn" id="mapbtn"></div><div class="mapctl" id="mapctl"></div><div class="legend" id="legend"></div><div class="mapdice" id="mapdice"></div><div class="fullbar" id="fullbar"></div></div>
+          <div class="board-wrap" id="bw"><svg id="board" viewBox="${B.VIEWBOX}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Mapa de la isla">${B.defs()}<g id="bs"></g><g id="bl"></g></svg><div class="hint" id="hint" hidden></div><div class="mapbtn" id="mapbtn"></div><div class="mapctl" id="mapctl"></div><div class="mapdice" id="mapdice"></div><div class="fullbar" id="fullbar"></div></div>
           <aside class="side" id="side"></aside>
         </main><div id="over"></div><div id="toast"></div>`;
       shown = { screen, boardKey: null };
@@ -484,7 +484,6 @@
     else if (isPhone()) ctl = `${map.min ? '' : zoomBtns}<button class="btn" data-act="openMap">${I('M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5')} Ampliar</button><button class="btn" data-act="toggleMin">${map.min ? I('M6 15l6-6 6 6') + ' Ver mapa' : I('M6 9l6 6 6-6') + ' Minimizar'}</button>`;
     else ctl = `${zoomBtns}<button class="btn" data-act="openMap">${I('M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5')} Pantalla completa</button>`;
     document.getElementById('mapctl').innerHTML = ctl;
-    document.getElementById('legend').hidden = screen === 'game';
     document.getElementById('mapdice').innerHTML = screen === 'game' && s.lastRoll && s.phase === 'main' ? die(s.lastRoll.d[0], false) + die(s.lastRoll.d[1], false) : '';
     document.getElementById('fullbar').innerHTML = map.full && session && screen === 'game' ? fullBar(s, vi) : '';
     applyView();
