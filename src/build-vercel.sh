@@ -13,5 +13,6 @@ mkdir -p "$ROOT/api" "$ROOT/lib"
 } > "$ROOT/index.html"
 rm -f hexalia.html
 cp engine.js "$ROOT/lib/engine.js"
-cp server/game.js "$ROOT/api/game.js"
+cp server/api/*.js "$ROOT/api/"
+cp server/lib/*.js "$ROOT/lib/"
 cp server/README.md "$ROOT/README.md"
