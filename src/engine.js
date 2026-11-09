@@ -26,6 +26,10 @@ const Engine = (() => {
   ];
   const PIECES = { road: 15, settlement: 5, city: 4 };
   const WIN_VP = 10;
+  const IDLE_MS = 5 * 60 * 1000; // after this long without playing, the others may declare a player out
+  const TERRAIN_POOL = { forest: 4, pasture: 4, fields: 4, hills: 3, mountains: 3, desert: 1 };
+  const TOKENS = [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12];
+  const PORT_TYPES = ['any', 'any', 'any', 'any', 'wood', 'brick', 'sheep', 'wheat', 'ore'];
 
   class RuleError extends Error {}
   const fail = (msg) => { throw new RuleError(msg); };
@@ -119,17 +123,13 @@ const Engine = (() => {
   }
 
   function generateBoard() {
-    const pool = [
-      ...Array(4).fill('forest'), ...Array(4).fill('pasture'), ...Array(4).fill('fields'),
-      ...Array(3).fill('hills'), ...Array(3).fill('mountains'), 'desert',
-    ];
+    const pool = Object.entries(TERRAIN_POOL).flatMap(([t, n]) => Array(n).fill(t));
     // At most 2 tiles of the same terrain touch, so no resource ends up in a block of 3 or more.
     let terrains;
     for (let tries = 0; tries < 20000; tries++) {
       terrains = shuffle(pool.slice());
       if (biggestCluster(terrains) <= 2) break;
     }
-    const TOKENS = [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12];
     let nums;
     for (let tries = 0; tries < 5000; tries++) {
       const t = shuffle(TOKENS.slice());
@@ -138,12 +138,28 @@ const Engine = (() => {
       const bad = G.hexes.some((h, i) => h.nb.some((j) => (hot(nums[i]) && hot(nums[j])) || (nums[i] && nums[i] === nums[j])));
       if (!bad) break;
     }
-    const types = shuffle(['any', 'any', 'any', 'any', 'wood', 'brick', 'sheep', 'wheat', 'ore']);
+    const types = shuffle(PORT_TYPES.slice());
     return {
       hexes: terrains.map((terrain, i) => ({ terrain, num: nums[i] })),
       ports: G.portEdges.map((edge, i) => ({ edge, type: types[i] })),
       robber: terrains.indexOf('desert'),
     };
+  }
+
+  // A board sent by a client must be a legal shuffle of the standard pieces.
+  function validBoard(b) {
+    try {
+      if (!b || !Array.isArray(b.hexes) || b.hexes.length !== 19 || !Array.isArray(b.ports) || b.ports.length !== 9) return false;
+      const count = {};
+      b.hexes.forEach((h) => { count[h.terrain] = (count[h.terrain] || 0) + 1; });
+      if (Object.keys(TERRAIN_POOL).some((t) => count[t] !== TERRAIN_POOL[t]) || Object.keys(count).length !== 6) return false;
+      if (b.hexes.some((h) => (h.terrain === 'desert') !== (h.num === 0))) return false;
+      const nums = b.hexes.map((h) => h.num).filter((n) => n).sort((x, y) => x - y);
+      if (nums.join() !== TOKENS.join()) return false;
+      if (b.ports.some((p, i) => p.edge !== G.portEdges[i])) return false;
+      if (b.ports.map((p) => p.type).sort().join() !== PORT_TYPES.slice().sort().join()) return false;
+      return b.robber === b.hexes.findIndex((h) => h.terrain === 'desert');
+    } catch { return false; }
   }
 
   function makeDeck() {
@@ -246,7 +262,7 @@ const Engine = (() => {
     const set = new Set();
     G.hexes[s.board.robber].corners.forEach((v) => {
       const b = s.buildings[v];
-      if (b && b.o !== p && total(s.players[b.o].res) > 0) set.add(b.o);
+      if (b && b.o !== p && !s.players[b.o].out && total(s.players[b.o].res) > 0) set.add(b.o);
     });
     return [...set];
   }
@@ -325,7 +341,7 @@ const Engine = (() => {
       const r = TERRAIN_RES[h.terrain];
       G.hexes[hi].corners.forEach((v) => {
         const b = s.buildings[v];
-        if (b) demand[r][b.o] += b.t === 'c' ? 2 : 1;
+        if (b && !s.players[b.o].out) demand[r][b.o] += b.t === 'c' ? 2 : 1;
       });
     });
     const got = s.players.map(() => emptyRes());
@@ -377,11 +393,13 @@ const Engine = (() => {
   H.join = (s, a, p, id) => {
     if (s.phase !== 'lobby') fail('La partida ya empezó.');
     const name = String(a.name || '').trim().slice(0, 18) || 'Jugador';
-    if (p >= 0) { s.players[p].name = name; return; }
+    if (p >= 0) { s.players[p].name = name; if (Number.isFinite(Number(a.rating))) s.players[p].rating = Math.round(Number(a.rating)); return; }
     if (s.players.length >= 4) fail('La partida está llena (máximo 4).');
     const used = new Set(s.players.map((x) => x.color));
     const color = [0, 1, 2, 3].find((c) => !used.has(c));
-    s.players.push(makePlayer(id, name, color));
+    const pl = makePlayer(id, name, color);
+    if (Number.isFinite(Number(a.rating))) pl.rating = Math.round(Number(a.rating));
+    s.players.push(pl);
     log(s, `${name} se unió.`);
   };
 
@@ -424,6 +442,11 @@ const Engine = (() => {
     o.rolls[p] = d[0] + d[1];
     o.dice[s.players[p].id] = d;
     log(s, `${s.players[p].name} saca ${d[0] + d[1]} para decidir quién empieza.`);
+    resolveOrder(s);
+  };
+
+  function resolveOrder(s) {
+    const o = s.order;
     if (o.contenders.some((i) => o.rolls[i] === undefined)) return;
     const max = Math.max(...o.contenders.map((i) => o.rolls[i]));
     const top = o.contenders.filter((i) => o.rolls[i] === max);
@@ -437,13 +460,40 @@ const Engine = (() => {
     const first = top[0];
     s.players = [...s.players.slice(first), ...s.players.slice(0, first)];
     const n = s.players.length;
-    const order = [...Array(n).keys(), ...[...Array(n).keys()].reverse()];
+    const seats = [...Array(n).keys()].filter((i) => !s.players[i].out);
+    const order = [...seats, ...seats.slice().reverse()];
     s.phase = 'setup';
-    s.setup = { order, i: 0, lastV: null };
-    s.turn = { cur: 0, step: 'settle', rolled: false, devPlayed: false, freeRoads: 0 };
-    log(s, `${s.players[0].name} empieza con ${max}. Orden: ${s.players.map((x) => x.name).join(' → ')}.`);
-    log(s, `${s.players[0].name}: coloca tu primer poblado y camino.`);
-  };
+    s.setup = { order, i: 0, lastV: null, round2: seats.length };
+    s.turn = { cur: order[0], step: 'settle', rolled: false, devPlayed: false, freeRoads: 0 };
+    const lead = s.players[order[0]];
+    log(s, `${lead.name} empieza con ${max}. Orden: ${seats.map((i) => s.players[i].name).join(' → ')}.`);
+    log(s, `${lead.name}: coloca tu primer poblado y camino.`);
+  }
+
+  // Move setup on to the next placement, or start the game once everyone placed twice.
+  function nextSetup(s) {
+    if (s.setup.i >= s.setup.order.length) {
+      s.phase = 'main';
+      s.turnNo = 1;
+      const seat = s.setup.order.find((i) => !s.players[i].out);
+      const first = seat !== undefined ? seat : nextAlive(s, -1);
+      s.turn = { cur: first, step: 'roll', rolled: false, devPlayed: false, freeRoads: 0 };
+      log(s, `Fin de la colocación. Turno de ${s.players[first].name}.`);
+    } else {
+      s.turn.cur = s.setup.order[s.setup.i];
+      s.turn.step = 'settle';
+      s.setup.lastV = null;
+    }
+  }
+
+  function nextAlive(s, p) {
+    const n = s.players.length;
+    for (let k = 1; k <= n; k++) {
+      const i = (p + k + n) % n;
+      if (!s.players[i].out) return i;
+    }
+    return p;
+  }
 
   function mustBeCur(s, p) {
     if (p < 0 || s.turn.cur !== p) fail('No es tu turno.');
@@ -458,7 +508,7 @@ const Engine = (() => {
       s.buildings[v] = { o: p, t: 's' };
       s.players[p].left.settlement--;
       s.setup.lastV = v;
-      if (s.setup.i >= s.players.length) {
+      if (s.setup.i >= (s.setup.round2 || s.players.length)) {
         const g = emptyRes();
         G.vertices[v].hexes.forEach((hi) => {
           const r = TERRAIN_RES[s.board.hexes[hi].terrain];
@@ -493,16 +543,7 @@ const Engine = (() => {
       s.roads[e] = p;
       s.players[p].left.road--;
       s.setup.i++;
-      if (s.setup.i >= s.setup.order.length) {
-        s.phase = 'main';
-        s.turnNo = 1;
-        s.turn = { cur: 0, step: 'roll', rolled: false, devPlayed: false, freeRoads: 0 };
-        log(s, `Fin de la colocación. Turno de ${s.players[0].name}.`);
-      } else {
-        s.turn.cur = s.setup.order[s.setup.i];
-        s.turn.step = 'settle';
-        s.setup.lastV = null;
-      }
+      nextSetup(s);
       return;
     }
     if (s.phase !== 'main') fail('La partida no está en curso.');
@@ -556,7 +597,7 @@ const Engine = (() => {
       const disc = {};
       s.players.forEach((pl, i) => {
         const n = total(pl.res);
-        if (n > 7) disc[i] = Math.floor(n / 2);
+        if (n > 7 && !pl.out) disc[i] = Math.floor(n / 2);
       });
       if (Object.keys(disc).length) {
         s.discards = disc;
@@ -692,6 +733,7 @@ const Engine = (() => {
   H.respond = (s, a, p) => {
     if (!s.trade) fail('No hay oferta abierta.');
     if (p < 0 || p === s.turn.cur) fail('No puedes responder a tu propia oferta.');
+    if (s.players[p].out) fail('Ya no estás en la partida.');
     const yes = !!a.accept;
     if (yes && !hasRes(s.players[p], s.trade.get)) fail('No tienes lo que piden.');
     s.trade.resp[p] = yes;
@@ -732,6 +774,7 @@ const Engine = (() => {
     if (s.phase !== 'main') fail('La partida no está en curso.');
     if (p < 0) fail('No estás en esta mesa.');
     if (p === s.turn.cur) fail('En tu turno haces ofertas a todos desde Comercio.');
+    if (s.players[p].out) fail('Ya no estás en la partida.');
     if (s.turn.step !== 'main') fail(`Espera a que ${s.players[s.turn.cur].name} tire los dados.`);
     const { give, get } = readOffer(a);
     if (!hasRes(s.players[p], give)) fail('No tienes lo que ofreces.');
@@ -773,32 +816,119 @@ const Engine = (() => {
     if (s.phase !== 'main') fail('La partida no está en curso.');
     mustBeCur(s, p);
     if (s.turn.step !== 'main') fail(s.turn.step === 'roll' ? 'Primero tira los dados.' : 'Termina la acción actual primero.');
-    s.trade = null;
-    s.bids = {};
-    const n = s.players.length;
-    s.turnNo++;
-    s.turn = { cur: (p + 1) % n, step: 'roll', rolled: false, devPlayed: false, freeRoads: 0 };
-    log(s, `Turno de ${s.players[s.turn.cur].name}.`);
+    passTurn(s, p);
   };
 
-  function apply(state, action, actorId) {
+  function passTurn(s, p) {
+    s.trade = null;
+    s.bids = {};
+    s.discards = null;
+    s.turnNo++;
+    s.turn = { cur: nextAlive(s, p), step: 'roll', rolled: false, devPlayed: false, freeRoads: 0 };
+    log(s, `Turno de ${s.players[s.turn.cur].name}.`);
+  }
+
+  // ---------- Leaving a game ----------
+  // Who the table is waiting on right now (the ones who can be declared out after IDLE_MS).
+  function waitingOn(s) {
+    if (s.phase === 'order') return s.order.contenders.filter((i) => s.order.rolls[i] === undefined);
+    if (s.phase === 'setup') return [s.turn.cur];
+    if (s.phase === 'main') return s.turn.step === 'discard' && s.discards ? Object.keys(s.discards).map(Number) : [s.turn.cur];
+    return [];
+  }
+
+  function idleFor(s, p, now) {
+    const since = Math.max(s.stepAt || 0, (s.seen && s.seen[s.players[p].id]) || 0);
+    return since ? now - since : 0;
+  }
+
+  function knockOut(s, p, why) {
+    const pl = s.players[p];
+    pl.out = true;
+    pl.outOrder = s.players.filter((x) => x.out).length;
+    log(s, `${pl.name} ${why}.`);
+    if (s.bids) delete s.bids[p];
+    if (s.trade) delete s.trade.resp[p];
+    const alive = s.players.map((x, i) => i).filter((i) => !s.players[i].out);
+    if (alive.length === 1) {
+      s.phase = 'ended';
+      s.winner = alive[0];
+      log(s, `🏆 ${s.players[alive[0]].name} gana: es quien queda en la mesa.`);
+      return;
+    }
+    if (s.phase === 'order') {
+      const o = s.order;
+      o.contenders = o.contenders.filter((i) => i !== p);
+      delete o.rolls[p];
+      if (o.contenders.length === 1) { o.rolls = { [o.contenders[0]]: o.rolls[o.contenders[0]] || 0 }; }
+      if (!o.contenders.length) o.contenders = alive;
+      resolveOrder(s);
+      return;
+    }
+    if (s.phase === 'setup') {
+      const st = s.setup;
+      const wasCur = s.turn.cur === p;
+      const placed = wasCur && s.turn.step === 'road'; // settlement down, road missing: that placement just ends
+      const keep = [];
+      let r2 = st.round2 || s.players.length;
+      st.order.forEach((x, k) => {
+        if (k >= st.i && x === p && !(placed && k === st.i)) { if (k < (st.round2 || s.players.length)) r2--; return; }
+        keep.push(x);
+      });
+      st.order = keep;
+      st.round2 = r2;
+      if (placed) st.i++;
+      if (wasCur) nextSetup(s);
+      return;
+    }
+    if (s.phase === 'main') {
+      if (s.turn.cur === p) { passTurn(s, p); return; }
+      if (s.discards && s.discards[p] !== undefined) {
+        delete s.discards[p];
+        if (!Object.keys(s.discards).length) { s.discards = null; s.turn.step = 'robber'; }
+      }
+      if (s.turn.step === 'steal' && !stealTargets(s, s.turn.cur).length) finishRobber(s);
+    }
+  }
+
+  H.resign = (s, a, p) => {
+    if (!['order', 'setup', 'main'].includes(s.phase)) fail('La partida no está en curso.');
+    if (p < 0 || s.players[p].out) fail('Ya no estás en la partida.');
+    knockOut(s, p, 'abandona la partida');
+  };
+
+  H.claimIdle = (s, a, p, id, now) => {
+    if (!['order', 'setup', 'main'].includes(s.phase)) fail('La partida no está en curso.');
+    if (p < 0 || s.players[p].out) fail('No estás jugando esta partida.');
+    const t = Number(a.target);
+    if (!waitingOn(s).includes(t) || t === p) fail('Ese jugador no está bloqueando la partida.');
+    if (idleFor(s, t, now) < IDLE_MS) fail('Todavía no pasaron 5 minutos sin que juegue.');
+    knockOut(s, t, 'queda fuera por inactividad');
+  };
+
+  // `now` (ms) comes from the server clock; it times inactivity.
+  function apply(state, action, actorId, now = Date.now()) {
     const s = JSON.parse(JSON.stringify(state));
-    const h = H[action && action.type];
+    const h = action && Object.prototype.hasOwnProperty.call(H, action.type) ? H[action.type] : null;
     if (!h) return { ok: false, error: 'Acción desconocida.' };
     const p = s.players.findIndex((x) => x.id === actorId);
+    const before = JSON.stringify([s.phase, waitingOn(s), s.turn && s.turn.step]);
     try {
-      h(s, action, p, actorId);
-      return { ok: true, state: s };
+      h(s, action, p, actorId, now);
     } catch (e) {
       if (e instanceof RuleError) return { ok: false, error: e.message };
       throw e;
     }
+    s.seen = s.seen || {};
+    if (p >= 0) s.seen[actorId] = now;
+    if (JSON.stringify([s.phase, waitingOn(s), s.turn && s.turn.step]) !== before || !s.stepAt) s.stepAt = now;
+    return { ok: true, state: s };
   }
 
   return {
-    RES, RES_NAME, TERRAIN_RES, TERRAIN_NAME, COST, DEV_NAME, DEV_HELP, PLAYER_COLORS, PIECES, WIN_VP, G,
-    newGame, generateBoard, biggestCluster, apply, total, hasRes, ratios, settlementSpots, roadSpots, citySpots, stealTargets,
-    roadLength, victoryPoints, fmtRes,
+    RES, RES_NAME, TERRAIN_RES, TERRAIN_NAME, COST, DEV_NAME, DEV_HELP, PLAYER_COLORS, PIECES, WIN_VP, IDLE_MS, G,
+    newGame, generateBoard, validBoard, biggestCluster, apply, total, hasRes, ratios, settlementSpots, roadSpots, citySpots, stealTargets,
+    roadLength, victoryPoints, fmtRes, waitingOn, idleFor,
   };
 })();
 if (typeof module !== 'undefined') module.exports = Engine;
